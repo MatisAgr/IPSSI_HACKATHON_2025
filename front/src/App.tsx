@@ -11,6 +11,9 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 
 // import Page404 from "./Pages/Page404/Page404";
 
+
+import Login from "./pages/Login";
+
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -26,7 +29,7 @@ export default function App() {
 
             {/* <Route path="/" element={<Home />} /> */}
 
-            {/* <Route path="/login" element={<Login />} /> */}
+            <Route path="/" element={<Login />} />
 
             {/* <Route path="/register" element={<Register />} /> */}
 
