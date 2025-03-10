@@ -9,6 +9,7 @@ export default function Register() {
   const handleRegisterSuccess = () => {
     toast.success('Inscription réussie ! Veuillez vérifier votre email.');
     // La redirection est gérée après la fermeture du modal de confirmation
+    // navigate('/login');
   };
 
   return (

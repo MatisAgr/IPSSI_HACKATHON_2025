@@ -52,6 +52,7 @@ const ConfirmMailModal = ({ isOpen, onClose, email }: ConfirmMailModalProps) => 
                 </p>
                 <p className="font-medium text-blue-600 mb-4">{email}</p>
                 
+                {/* TODO: Revoir le fonctionnement */}
                 <p className="text-gray-600 mb-6">
                   Veuillez cliquer sur le lien dans cet email pour confirmer votre compte et continuer.
                 </p>

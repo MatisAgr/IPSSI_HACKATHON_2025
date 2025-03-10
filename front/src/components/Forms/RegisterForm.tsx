@@ -57,6 +57,7 @@ const RegisterForm = ({ onRegisterSuccess }: RegisterFormProps) => {
     }
   };
   
+  // TODO: Mettre le regex dans un seul fichier pour le réutiliser
   // Validation d'email
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
