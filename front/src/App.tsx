@@ -5,7 +5,7 @@ import { Routes, Route } from "react-router-dom";
 /////////////////////////////////////////////
 //Components
 import ScrollToTop from "./utils/ScrollToTop";
-
+import ProtectedRoute from "./utils/ProtectedRoute";
 
 // import Dashboard from "./Pages/Dashboard/Dashboard";
 
@@ -24,9 +24,18 @@ export default function App() {
           <Routes>
 
 
-            {/* <Route path="/" element={<Home />} />
+            {/* <Route path="/" element={<Home />} /> */}
 
-            <Route path="*" element={<Page404 />} /> */}
+            {/* <Route path="/login" element={<Login />} /> */}
+
+            {/* <Route path="/register" element={<Register />} /> */}
+
+            {/* <Route path="/feed" element={<Feed />} */}
+
+            {/* <Route path="/profile element={<Profile />} /> */}
+            {/* <Route path="/profile/edit" element={<EditProfile />} /> */}
+
+            {/* <Route path="*" element={<Page404 />} /> */}
 
 
           </Routes>
