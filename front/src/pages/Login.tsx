@@ -7,8 +7,9 @@ export default function Login() {
   const navigate = useNavigate();
   
   const handleLoginSuccess = () => {
+    // TODO: pas fonctionnel
     toast.success('Connexion réussie !');
-    navigate('/');
+    // navigate('/');
   };
 
   return (
