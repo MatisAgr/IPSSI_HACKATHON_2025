@@ -23,7 +23,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Check if user already exists with email, username or hashtag
     const userExists = await User.findOne({ 
-      $or: [{ email }, { username }, { hashtag }] 
+      $or: [{ hashtag }, { email }] 
     });
 
     if (userExists) {
