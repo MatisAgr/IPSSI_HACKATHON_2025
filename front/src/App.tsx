@@ -7,6 +7,10 @@ import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./utils/ScrollToTop";
 import ProtectedRoute from "./utils/ProtectedRoute";
 
+import Navbar from "./components/Navbar/Navbar";
+
+import Home from "./pages/Home";
+
 // import Dashboard from "./Pages/Dashboard/Dashboard";
 
 // import Page404 from "./Pages/Page404/Page404";
@@ -22,15 +26,15 @@ import Profile from "./pages/Profile";
 
 export default function App() {
   return (
-    <div className="flex min-h-screen">
-      {/* <Navbar /> */}
+    <div className="min-h-screen">
+      <Navbar />
       <div className="flex flex-col flex-grow">
         <ScrollToTop />
         <main className="flex-grow">
           <Routes>
 
 
-            {/* <Route path="/" element={<Home />} /> */}
+            <Route path="/" element={<Home />} />
 
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

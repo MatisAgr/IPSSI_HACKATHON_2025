@@ -1,6 +1,8 @@
 import React from 'react';
 import { FaCalendarAlt, FaUserFriends, FaUsers, FaCheck, FaEnvelope, FaBell } from 'react-icons/fa';
 
+import ProfileBanner from '../ProfileBanner';
+
 interface UserCardProps {
   user: {
     name: string;
@@ -20,7 +22,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       {/* Bannière */}
-      <div className="h-48 w-full bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
+      {/* <div className="h-48 w-full bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
         <img
           src={user.bannerImage}
           alt="Bannière de profil"
@@ -29,7 +31,8 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
             e.currentTarget.src = "https://ralfvanveen.com/wp-content/uploads/2021/06/Placeholder-_-Begrippenlijst.svg";
           }}
         />
-      </div>
+      </div> */}
+      <ProfileBanner coverImage={"https://ralfvanveen.com/wp-content/uploads/2021/06/Placeholder-_-Begrippenlijst.svg"} />
 
       {/* Section profil (photo + infos) */}
       <div className="p-4 flex flex-col md:flex-row gap-6 relative">
