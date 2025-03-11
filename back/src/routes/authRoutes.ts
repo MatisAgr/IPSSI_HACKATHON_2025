@@ -7,7 +7,7 @@ const router = express.Router();
 // Routes d'authentification
 router.post("/register", register);
 router.post("/login" , login);
-router.post("checkmail", checkEmail);
+router.post("/checkmail", checkEmail);
 
 
 
