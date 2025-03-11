@@ -83,7 +83,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
  */
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password, remember } = req.body;
 
     // Check for email and password
     if (!email || !password) {
@@ -119,11 +119,21 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Generate token for the user
     const token = generateToken(user.id);
 
+    //cookie de token
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      sameSite: "none"
+    });
+
+    //cookie de session
+    res.cookie("cookie_session", remember, {
+      sameSite: "none"
+    });
+
     // Return success response with token
     res.status(200).json({
       success: true,
       message: "Login successful",
-      token,
       data: {
         id: user._id,
         username: user.username,
@@ -231,7 +241,7 @@ export const checkEmail = async (req: Request, res: Response): Promise<void> => 
  */
 export const generateUniqueHashtag = async (username: string, User: any): Promise<string> => {
   // Générer un hashtag initial à partir du nom d'utilisateur
-  let hashtag = `#${username.toLowerCase().replace(/ /g, "")}`;
+  let hashtag = `${username.toLowerCase().replace(/ /g, "")}`;
   
   // Vérifier si ce hashtag existe déjà
   const existingUserWithHashtag = await User.findOne({ hashtag });
@@ -239,7 +249,7 @@ export const generateUniqueHashtag = async (username: string, User: any): Promis
   // Si le hashtag existe, ajouter un nombre aléatoire
   if (existingUserWithHashtag) {
     const randomNum = Math.floor(Math.random() * 10000);
-    hashtag = `#${username.toLowerCase().replace(/ /g, "")}${randomNum}`;
+    hashtag = `${username.toLowerCase().replace(/ /g, "")}${randomNum}`;
   }
   
   return hashtag;
