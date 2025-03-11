@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
  */
 export const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
   try {
-    const response = await fetch(`${API_URL}/api/auth/check-email`, {
+    const response = await fetch(`${API_URL}/auth/checkmail`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
