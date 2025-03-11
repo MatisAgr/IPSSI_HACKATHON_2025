@@ -13,13 +13,13 @@ import Home from "./pages/Home";
 
 // import Dashboard from "./Pages/Dashboard/Dashboard";
 
-// import Page404 from "./Pages/Page404/Page404";
-
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import Profile from "./pages/Profile";
+
+import Page404 from "./pages/Page404";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ export default function App() {
             {/* <Route path="/profile element={<Profile />} /> */}
             {/* <Route path="/profile/edit" element={<EditProfile />} /> */}
 
-            {/* <Route path="*" element={<Page404 />} /> */}
+            <Route path="*" element={<Page404 />} />
 
 
           </Routes>

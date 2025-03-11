@@ -1,5 +1,5 @@
 import React from 'react';
-import ButtonStandard from '../components/ButtonStandard';
+import ButtonStandard from '../components/Buttons/ButtonStandard';
 
 const Home: React.FC = () => {
     const handleLogin = () => {
