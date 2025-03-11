@@ -315,7 +315,6 @@ export default function CreatePostModal({
                                         likes: 0
                                     }}
                                     // Images détectées automatiquement via formatText
-                                    image={allImages.length > 0 ? allImages[0] : undefined}
                                     isPreview={true} // Activer le mode prévisualisation
                                 />
                             </motion.div>
