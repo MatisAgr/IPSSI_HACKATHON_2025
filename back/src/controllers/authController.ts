@@ -1,4 +1,3 @@
-// src/controllers/authController.ts
 import { Request, Response } from "express";
 import User from "../models/userModel";
 import { generateToken } from "../middleware/authMiddleware";
