@@ -1,6 +1,7 @@
 // src/controllers/authController.ts
 import { Request, Response } from "express";
-import User, { IUser } from "../models/userModel";
+import User from "../models/userModel";
+import { generateToken } from "../middleware/authMiddleware";
 
 /**
  * Register a new user
@@ -46,10 +47,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       interests: interests || []
     });
 
-    // Return success response
+    // Generate token for the new user
+    const token = generateToken(user.id);
+
+    // Return success response with token
     res.status(201).json({
       success: true,
       message: "User registered successfully",
+      token,
       data: {
         id: user._id,
         username: user.username,
@@ -93,7 +98,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Find user by email
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
       res.status(401).json({
@@ -114,10 +119,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Return success response
+    // Generate token for the user
+    const token = generateToken(user.id);
+
+    // Return success response with token
     res.status(200).json({
       success: true,
       message: "Login successful",
+      token,
       data: {
         id: user._id,
         username: user.username,
