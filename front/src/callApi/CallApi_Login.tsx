@@ -1,6 +1,7 @@
 interface LoginCredentials {
   email: string;
   password: string;
+  remember?: boolean;
 }
 
 interface LoginResponse {
@@ -9,7 +10,6 @@ interface LoginResponse {
     id: string;
     email: string;
     name?: string;
-    // Ajoutez d'autres propriétés utilisateur si nécessaire
   };
 }
 

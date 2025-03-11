@@ -18,6 +18,7 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [loading, setLoading] = useState(false);
   const [isForgetPasswordModalOpen, setIsForgetPasswordModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isRememberMeChecked, setIsRememberMeChecked] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -35,22 +36,27 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
 
     try {
       // Appel à l'API d'authentification
-      const response = await loginUser({ email, password });
-
-      // Stocker le token dans un cookie
-      Cookies.set("token", response.token, { expires: 7 });
+      const response = await loginUser({ email, password, remember: isRememberMeChecked });
 
       // Notification de succès
       if (onLoginSuccess) onLoginSuccess();
 
       // Rediriger vers la page d'accueil
-      navigate("/");
+      console.log("email: ", email);
+      console.log("password: ", password);
+      console.log("isRememberMeChecked: ", isRememberMeChecked);
+      console.log(response);
+      // navigate("/");
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur s'est produite");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRememberMeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsRememberMeChecked(e.target.checked);
   };
 
   const openForgetPasswordModal = (e: React.MouseEvent) => {
@@ -134,6 +140,8 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
               type="checkbox"
               id="remember"
               className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+              checked={isRememberMeChecked}
+              onChange={handleRememberMeChange}
             />
             <label htmlFor="remember" className="ml-2 text-sm text-gray-600 cursor-pointer">
               Se souvenir de moi
