@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiSend, FiCheck } from 'react-icons/fi';
 
@@ -129,7 +129,7 @@ export default function CreatePostModal({
 
     return (
         <AnimatePresence mode="wait">
-            {/* Fond du modal avec animation */}
+
             <motion.div 
                 className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden"
                 initial={{ backdropFilter: "blur(0px)", backgroundColor: "rgba(0, 0, 0, 0)" }}
@@ -170,8 +170,9 @@ export default function CreatePostModal({
                         </button>
                     </div>
 
-                    {/* Contenu du modal en deux parties: éditeur et prévisualisation */}
+                    {/* Contenu du modal */}
                     <div className="grid md:grid-cols-2 divide-x">
+
                         {/* Partie édition */}
                         <div className="p-4">
                             <div className="flex items-start space-x-3 mb-4">
@@ -343,6 +344,7 @@ export default function CreatePostModal({
                                 )}
                             </AnimatePresence>
                         </div>
+
                     </div>
                 </motion.div>
             </motion.div>
