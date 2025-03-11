@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiSend, FiCheck, FiArrowUp } from 'react-icons/fi';
+import { FiX, FiSend, FiCheck } from 'react-icons/fi';
 
-// Réutilisation de la fonction de formatText du PostCard pour la cohérence
 import { formatText } from '../Cards/PostCard';
 import PostCard from '../Cards/PostCard';
 
@@ -18,7 +17,7 @@ interface CreatePostModalProps {
     };
 }
 
-const DEFAULT_AVATAR = 'https://via.placeholder.com/100?text=User';
+const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/2048px-User-avatar.svg.png';
 
 export default function CreatePostModal({
     isOpen,
@@ -36,11 +35,11 @@ export default function CreatePostModal({
     const [isFocused, setIsFocused] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-    const [isClosing, setIsClosing] = useState(false); // Nouvel état pour gérer la fermeture
+    const [isClosing, setIsClosing] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // Sécuriser les propriétés de l'utilisateur avec des valeurs par défaut
+    // propriétés de l'utilisateur avec des valeurs par défaut
     const userName = user?.name || 'Utilisateur';
     const userUsername = user?.username || 'utilisateur';
     const userProfileImage = user?.profileImage || DEFAULT_AVATAR;
@@ -81,30 +80,14 @@ export default function CreatePostModal({
         };
     }, [isOpen, onClose]);
 
-    // Utiliser formatText pour prévisualiser le contenu
-    const { detectedImageUrls } = useMemo(() => {
-        try {
-            // Si formatText est une fonction directement exportée, utilisez-la
-            return formatText(content);
-        } catch (error) {
-            // Fallback simple si formatText n'est pas exporté comme prévu
-            return {
-                formattedContent: content,
-                detectedImageUrls: []
-            };
-        }
-    }, [content]);
 
-    // Combiner les images détectées dans le contenu
-    const allImages = useMemo(() => {
-        return detectedImageUrls || [];
-    }, [detectedImageUrls]);
 
+    // Mettre à jour le contenu du textarea
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setContent(e.target.value);
     };
 
-    // Fonction améliorée de fermeture avec animation
+    // Fermer le modal avec animation
     const handleClose = () => {
         if (isSubmitting) return; // Ne pas fermer pendant la soumission
         
@@ -119,8 +102,9 @@ export default function CreatePostModal({
         }, 300); // Temps suffisant pour que l'animation de sortie soit visible
     };
 
+    // Soumettre le formulaire
     const handleSubmit = () => {
-        if (content.trim() || allImages.length > 0) {
+        if (content.trim()) {
             // Animation de soumission
             setIsSubmitting(true);
             
@@ -131,7 +115,7 @@ export default function CreatePostModal({
                 
                 // Envoyer les données après un court délai pour montrer l'animation de succès
                 setTimeout(() => {
-                    onSubmit?.({ content, images: allImages });
+                    onSubmit?.({ content, images });
                     // Reset le formulaire et fermer avec l'animation fluide
                     setContent('');
                     setImages([]);
@@ -226,18 +210,18 @@ export default function CreatePostModal({
                                             className={`px-4 py-2 rounded-full text-white font-medium flex items-center space-x-2 ${
                                                 isSuccess 
                                                     ? 'bg-green-500'
-                                                    : content.trim() || allImages.length > 0
+                                                    : content.trim()
                                                         ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer'
-                                                        : 'bg-blue-300 cursor-not-allowed'
+                                                        : 'bg-blue-200 cursor-not-allowed'
                                             }`}
-                                            disabled={(!content.trim() && allImages.length === 0) || isSubmitting || isSuccess}
+                                            disabled={(!content.trim()) || isSubmitting || isSuccess}
                                             whileHover={
-                                                (content.trim() || allImages.length > 0) && !isSubmitting && !isSuccess
+                                                (content.trim()) && !isSubmitting && !isSuccess
                                                     ? { scale: 1.03 }
                                                     : {}
                                             }
                                             whileTap={
-                                                (content.trim() || allImages.length > 0) && !isSubmitting && !isSuccess
+                                                (content.trim()) && !isSubmitting && !isSuccess
                                                     ? { scale: 0.97 }
                                                     : {}
                                             }
