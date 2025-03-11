@@ -7,7 +7,11 @@ import routes from "./routes";
 dotenv.config();
 
 const app: Application = express();
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // URL de votre frontend
+  credentials: true  // Important pour les cookies
+}));
+
 app.use(express.json());
 
 // Connect to MongoDB

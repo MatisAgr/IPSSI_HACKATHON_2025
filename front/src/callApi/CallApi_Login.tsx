@@ -27,6 +27,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
         "Content-Type": "application/json"
       },
       body: JSON.stringify(credentials),
+      credentials: "include",
     });
     
     const data = await response.json();
