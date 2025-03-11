@@ -1,15 +1,14 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 
 interface UseWebcamProps {
     setWebcamError: (error: string | null) => void;
-    setStream: (stream: MediaStream | null) => void;
     setPhotoURL: (url: string | null) => void;
     setWebcamPermissionDenied: (denied: boolean) => void;
 }
 
 interface UseWebcamReturn {
-    webcamRef: React.RefObject<HTMLVideoElement>;
-    canvasRef: React.RefObject<HTMLCanvasElement>;
+    webcamRef: React.RefObject<HTMLVideoElement | null>;
+    canvasRef: React.RefObject<HTMLCanvasElement | null>;
     initWebcam: () => Promise<void>;
     stopWebcam: () => void;
     takePhoto: () => void;
@@ -19,7 +18,6 @@ interface UseWebcamReturn {
 
 const useWebcam = ({
     setWebcamError,
-    setStream,
     setPhotoURL,
     setWebcamPermissionDenied
 }: UseWebcamProps): UseWebcamReturn => {
@@ -40,7 +38,6 @@ const useWebcam = ({
             };
             
             const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-            setStream(mediaStream);
             
             if (webcamRef.current) {
                 webcamRef.current.srcObject = mediaStream;
@@ -66,7 +63,6 @@ const useWebcam = ({
                 track.stop();
             });
             webcamRef.current.srcObject = null;
-            setStream(null);
         }
     };
 
