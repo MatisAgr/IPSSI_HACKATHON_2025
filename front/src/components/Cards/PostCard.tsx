@@ -262,4 +262,3 @@ export default function PostCard({
     </div>
   );
 }
->>>>>>> 01f279ba4261e7353e0020a1ca4e2e19da09f9e3
