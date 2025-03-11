@@ -36,6 +36,9 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
 
       {/* Section profil (photo + infos) */}
       <div className="p-4 flex flex-col md:flex-row gap-6 relative">
+
+
+
         {/* Photo de profil */}
         <div className="h-32 w-32 rounded-full border-4 border-white overflow-hidden bg-white flex-shrink-0 
                        shadow-md hover:shadow-lg transition-shadow duration-300">
@@ -49,8 +52,14 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
           />
         </div>
 
+
+
         {/* Informations utilisateur */}
         <div className="flex flex-col flex-grow">
+
+
+
+
           <div className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-gray-800">{user.name}</h1>
 
@@ -60,16 +69,24 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
                 <FaCheck className="h-3 w-3" />
               </div>
             )}
-
-
           </div>
+
+
+
+
           <span className="text-gray-600">{user.username}</span>
           <p className="mt-2 text-gray-700">{user.bio}</p>
+
+
+
 
           <div className="flex items-center mt-2 text-sm text-gray-600">
             <FaCalendarAlt className="h-4 w-4 mr-1 text-blue-500" />
             <span>A rejoint en {user.joinDate}</span>
           </div>
+
+
+
 
           <div className="flex mt-3 space-x-4">
             <div className="flex items-center">
@@ -81,6 +98,9 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
               <span><strong>{user.followers}</strong> <span className="text-gray-600">abonnés</span></span>
             </div>
           </div>
+
+
+
         </div>
 
         {/* Boutons d'action */}
@@ -98,6 +118,9 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
             <FaBell className="h-5 w-5" />
           </button>
         </div>
+
+
+
       </div>
     </div>
   );
