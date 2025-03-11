@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import CreatePostButton from '../components/Buttons/CreatePostButton';
 import { UserCard } from '../components/Cards/UserCard';
 import { ProfileSidebar } from '../components/Menu/ProfileSidebar';
 import PostCard from '../components/Cards/PostCard';
@@ -77,6 +78,7 @@ export default function Profile() {
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-blue-400 to-purple-100">
+            <CreatePostButton />
             {/* Page principale */}
             <div className="flex-1 max-w-6xl mx-auto bg-white shadow-sm">
                 {/* Carte utilisateur */}
