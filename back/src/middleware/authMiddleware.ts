@@ -31,9 +31,9 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
   try {
     let token: string | undefined;
 
-    // Récupérer le token du cookie
-    if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
+    // Récupérer le token du header Authorization
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
     }
 
     // Vérifier si le token existe
@@ -79,3 +79,4 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     });
   }
 };
+

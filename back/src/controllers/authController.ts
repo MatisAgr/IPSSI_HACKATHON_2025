@@ -83,7 +83,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
  */
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password, remember } = req.body;
 
     // Check for email and password
     if (!email || !password) {
@@ -119,10 +119,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Generate token for the user
     const token = generateToken(user.id);
 
+    //cookie de token
     res.cookie("token", token, {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-//      httpOnly: true,
-//      secure: process.env.NODE_ENV === "production",
+      sameSite: "none"
+    });
+
+    //cookie de session
+    res.cookie("cookie_session", remember, {
       sameSite: "none"
     });
 
