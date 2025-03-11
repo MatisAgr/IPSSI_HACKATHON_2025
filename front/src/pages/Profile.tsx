@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { UserCard } from '../components/Cards/UserCard';
 import { ProfileSidebar } from '../components/Menu/ProfileSidebar';
+import PostCard from '../components/Cards/PostCard';
 
 export default function Profile() {
     const [activeTab, setActiveTab] = useState('posts');
@@ -14,10 +15,66 @@ export default function Profile() {
         bio: 'Bio de fou',
         followers: '2,456',
         following: '867',
-        profileImage: 'image de pdp',
+        profileImage: 'https://randomuser.me/api/portraits/men/32.jpg', // URL d'image par défaut
         bannerImage: 'image de bannière',
         joinDate: 'Mars 2025'
     };
+
+    // Création de posts factices
+    const fakePosts = [
+        {
+            id: 1,
+            user: {
+                name: user.name,
+                username: user.username.replace('@', ''), // On enlève le @ car le composant l'ajoute déjà
+                avatar: user.profileImage || "https://randomuser.me/api/portraits/men/32.jpg",
+                verified: true
+            },
+            content: "Je travaille sur un nouveau projet qui utilise React et Tailwind CSS. C'est incroyable ce qu'on peut faire rapidement avec ces technologies ! #ReactJS #TailwindCSS #webdev",
+            image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80",
+            timestamp: "il y a 3h",
+            stats: {
+                comments: 12,
+                retweets: 5,
+                likes: 23
+            }
+        },
+        {
+            id: 2,
+            user: {
+                name: user.name,
+                username: user.username.replace('@', ''),
+                avatar: user.profileImage || "https://randomuser.me/api/portraits/men/32.jpg",
+                verified: true
+            },
+            content: "Les hackathons sont une excellente façon d'apprendre et de se challenger. Qui est partant pour le prochain ? #hackathon #coding #challenge",
+            timestamp: "il y a 6h",
+            stats: {
+                comments: 8,
+                retweets: 2,
+                likes: 15
+            },
+            isLiked: true
+        },
+        {
+            id: 3,
+            user: {
+                name: user.name,
+                username: user.username.replace('@', ''),
+                avatar: user.profileImage || "https://randomuser.me/api/portraits/men/32.jpg",
+                verified: true
+            },
+            content: "Je viens de finir le dernier cours sur la programmation fonctionnelle. Ces concepts sont vraiment puissants une fois qu'on les maîtrise !",
+            image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+            timestamp: "il y a 1j",
+            stats: {
+                comments: 20,
+                retweets: 12,
+                likes: 45
+            },
+            isRetweeted: true
+        }
+    ];
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-blue-400 to-purple-100">
@@ -55,36 +112,19 @@ export default function Profile() {
                                 {/* Contenu selon l'onglet actif */}
                                 {activeTab === 'posts' && (
                                     <>
-
-                                    {/* Liste de faux posts pour l'instant */}
-                                        {[1, 2, 3].map((item) => (
-                                            <div key={item} className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                                <div className="flex items-start space-x-3">
-                                                    <div className="h-10 w-10 rounded-full overflow-hidden bg-blue-200">
-                                                        <img 
-                                                            src={user.profileImage}
-                                                            alt="Avatar" 
-                                                            className="h-full w-full object-cover"
-                                                            onError={(e) => {
-                                                                e.currentTarget.src = "https://ralfvanveen.com/wp-content/uploads/2021/06/Placeholder-_-Begrippenlijst.svg";
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center">
-                                                            <span className="font-bold">{user.name}</span>
-                                                            <span className="text-gray-500 text-sm ml-2">{user.username}</span>
-                                                            <span className="text-gray-500 text-sm ml-2">· il y a 3h</span>
-                                                        </div>
-                                                        <p className="mt-1">Exemple de post {item} - Lorem ipsum dolor sit amet, consectetur adipiscing elit. #tailwind #react</p>
-                                                        <div className="flex mt-3 text-gray-500 text-sm space-x-6">
-                                                            <span>12 commentaires</span>
-                                                            <span>5 retweets</span>
-                                                            <span>23 j'aime</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        {/* Liste des posts */}
+                                        {fakePosts.map(post => (
+                                            <PostCard
+                                                key={post.id}
+                                                user={post.user}
+                                                content={post.content}
+                                                image={post.image}
+                                                timestamp={post.timestamp}
+                                                stats={post.stats}
+                                                isLiked={post.isLiked}
+                                                isRetweeted={post.isRetweeted}
+                                                // isBookmarked={post.isBookmarked}
+                                            />
                                         ))}
                                     </>
                                 )}
