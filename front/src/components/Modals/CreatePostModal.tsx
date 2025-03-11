@@ -197,13 +197,13 @@ export default function CreatePostModal({
                                             onChange={handleTextChange}
                                             onFocus={() => setIsFocused(true)}
                                             onBlur={() => setIsFocused(false)}
-                                            placeholder="Qu'avez-vous en tête ?"
+                                            placeholder="Crachez votre haine ici..."
                                             className="w-full min-h-[200px] resize-none focus:outline-none"
                                             disabled={isSubmitting || isSuccess}
                                         />
                                     </div>
 
-                                    {/* Barre d'outils avec animation lors de la soumission */}
+                                    {/* Barre d'outils */}
                                     <div className="flex justify-end items-center mt-3">
                                         <motion.button
                                             onClick={handleSubmit}
@@ -298,12 +298,11 @@ export default function CreatePostModal({
                                         retweets: 0,
                                         likes: 0
                                     }}
-                                    // Images détectées automatiquement via formatText
-                                    isPreview={true} // Activer le mode prévisualisation
+                                    isPreview={true}
                                 />
                             </motion.div>
                             
-                            {/* Animation de succès avec sortie fluide */}
+                            {/* Animation de succès */}
                             <AnimatePresence mode="wait">
                                 {isSuccess && !isClosing && (
                                     <motion.div 
