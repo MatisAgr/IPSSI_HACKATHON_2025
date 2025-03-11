@@ -355,7 +355,7 @@ const RegisterForm = ({ onRegisterSuccess }: RegisterFormProps) => {
                 <button
                   type="button"
                   onClick={goToPreviousStep}
-                  className="py-2 px-4 text-blue-600 flex items-center"
+                  className="py-2 px-4 text-blue-600 flex items-center cursor-pointer"
                 >
                   <FiArrowLeft className="mr-2" />
                   Retour
@@ -462,7 +462,7 @@ const RegisterForm = ({ onRegisterSuccess }: RegisterFormProps) => {
                 <button
                   type="button"
                   onClick={goToPreviousStep}
-                  className="py-2 px-4 text-blue-600 flex items-center"
+                  className="py-2 px-4 text-blue-600 flex items-center cursor-pointer"
                 >
                   <FiArrowLeft className="mr-2" />
                   Retour
