@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiSend, FiCheck } from 'react-icons/fi';
 
-import { formatText } from '../Cards/PostCard';
 import PostCard from '../Cards/PostCard';
 
 interface CreatePostModalProps {

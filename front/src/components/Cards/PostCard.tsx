@@ -31,7 +31,7 @@ interface PostCardProps {
 }
 
 // Fonction pour formater le texte avec les liens, hashtags et mentions
-export const formatText = (text: string) => {
+const formatText = (text: string) => {
   // Expressions régulières pour détecter les différents éléments
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const hashtagRegex = /(?:^|\s)(#[a-zA-Z0-9_]+\b)/g;
