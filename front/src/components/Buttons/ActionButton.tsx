@@ -14,6 +14,7 @@ interface ActionButtonProps {
   filled?: boolean;     // Icône pleine quand active
   className?: string;   // Classes supplémentaires
   ariaLabel?: string;   // Texte d'accessibilité
+  disable?: boolean;    // Désactiver les boutons
 }
 
 /**
@@ -32,7 +33,8 @@ const ActionButton = ({
   hoverBgColor = 'group-hover:bg-blue-50',
   filled = false,
   className = '',
-  ariaLabel = 'Action button'
+  ariaLabel = 'Action button',
+  disable = false
 }: ActionButtonProps) => {
   // Contrôles d'animation
   const controls = useAnimationControls();
@@ -64,6 +66,7 @@ const ActionButton = ({
       aria-label={ariaLabel}
       whileTap={{ scale: 0.9 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      disabled={disable}
     >
       <motion.div 
         className={`p-2 rounded-full ${

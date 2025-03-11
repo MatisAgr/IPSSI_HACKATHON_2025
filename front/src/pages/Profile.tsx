@@ -12,7 +12,7 @@ export default function Profile() {
     // Données factices pour l'utilisateur
     const user = {
         name: 'Nom de fou',
-        username: '@nomdefou',
+        username: 'nomdefou',
         bio: 'Bio de fou',
         followers: '2,456',
         following: '867',
@@ -78,7 +78,7 @@ export default function Profile() {
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-blue-400 to-purple-100">
-            <CreatePostButton />
+            <CreatePostButton user={user} />
             {/* Page principale */}
             <div className="flex-1 max-w-6xl mx-auto bg-white shadow-sm">
                 {/* Carte utilisateur */}
