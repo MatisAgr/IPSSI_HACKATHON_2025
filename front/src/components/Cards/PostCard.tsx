@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   FiMessageCircle, 
   FiRepeat, 
@@ -29,6 +29,60 @@ interface PostCardProps {
   isBookmarked?: boolean;
 }
 
+// Fonction pour formater le texte avec les liens, hashtags et mentions
+const formatText = (text: string) => {
+  // Expressions régulières pour détecter les différents éléments
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const hashtagRegex = /(\#[a-zA-Z0-9_]+\b)/g;
+  const mentionRegex = /(\@[a-zA-Z0-9_]+\b)/g;
+  
+  // Vérifier si une URL est une image
+  const isImageUrl = (url: string) => {
+    // Extensions d'images courantes
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+    const lowercaseUrl = url.toLowerCase();
+    return imageExtensions.some(ext => lowercaseUrl.endsWith(ext));
+  };
+
+  // Tableau pour stocker les URLs d'images détectées
+  const detectedImageUrls: string[] = [];
+  
+  // Étape 1: Détecter les liens d'images et les stocker
+  const withoutImageUrls = text.replace(urlRegex, (match) => {
+    if (isImageUrl(match)) {
+      detectedImageUrls.push(match);
+      // Remplacer par un espace pour ne pas montrer le lien dans le texte
+      return '';
+    }
+    return match;
+  });
+  
+  // Étape 2: Formater le texte avec les liens (non-images), hashtags et mentions
+  const parts = withoutImageUrls.split(/(\s+)/);
+  
+  const formattedParts = parts.map((part, index) => {
+    // Vérifier si c'est un lien
+    if (part.match(urlRegex)) {
+      return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{part}</a>;
+    }
+    
+    // Vérifier si c'est un hashtag
+    else if (part.match(hashtagRegex)) {
+      return <a key={index} href={`/hashtag/${part.substring(1)}`} className="text-blue-500 hover:underline">{part}</a>;
+    }
+    
+    // Vérifier si c'est une mention
+    else if (part.match(mentionRegex)) {
+      return <a key={index} href={`/user/${part.substring(1)}`} className="text-blue-500 hover:underline">{part}</a>;
+    }
+    
+    // Sinon, garder le texte tel quel
+    return part;
+  });
+  
+  return { formattedContent: formattedParts, detectedImageUrls };
+};
+
 export default function PostCard({
   user,
   content,
@@ -44,6 +98,16 @@ export default function PostCard({
   const [retweeted, setRetweeted] = useState(isRetweeted);
   const [retweets, setRetweets] = useState(stats.retweets);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
+  
+  // Utiliser useMemo pour éviter de reformater le contenu à chaque rendu
+  const { formattedContent, detectedImageUrls } = useMemo(() => formatText(content), [content]);
+  
+  // Combiner l'image explicitement fournie avec celles détectées dans le contenu
+  const allImages = useMemo(() => {
+    const images = [...detectedImageUrls];
+    if (image) images.unshift(image);
+    return images;
+  }, [image, detectedImageUrls]);
   
   const handleLike = () => {
     setLiked(!liked);
@@ -99,17 +163,25 @@ export default function PostCard({
       
       {/* Contenu du post */}
       <div className="mt-2">
-        <p className="text-gray-900 whitespace-pre-wrap">{content}</p>
+        <p className="text-gray-900 whitespace-pre-wrap">{formattedContent}</p>
       </div>
       
-      {/* Image (si présente) */}
-      {image && (
-        <div className="mt-3 rounded-xl overflow-hidden">
-          <img 
-            src={image} 
-            alt="Post image" 
-            className="w-full h-auto object-cover rounded-xl border border-gray-100" 
-          />
+      {/* Images (du prop ou détectées dans le contenu) */}
+      {allImages.length > 0 && (
+        <div className={`mt-3 grid gap-2 ${allImages.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {allImages.map((img, index) => (
+            <div 
+              key={index}
+              className={`rounded-xl overflow-hidden ${allImages.length > 2 && index >= 2 ? 'lg:col-span-1' : ''}`}
+            >
+              <img 
+                src={img} 
+                alt={`Image ${index + 1}`} 
+                className="w-full h-auto max-h-96 object-cover rounded-xl border border-gray-100" 
+                loading="lazy"
+              />
+            </div>
+          ))}
         </div>
       )}
       

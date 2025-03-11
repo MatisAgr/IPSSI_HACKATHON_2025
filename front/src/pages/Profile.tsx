@@ -30,8 +30,7 @@ export default function Profile() {
                 avatar: user.profileImage || "https://randomuser.me/api/portraits/men/32.jpg",
                 verified: true
             },
-            content: "Je travaille sur un nouveau projet qui utilise React et Tailwind CSS. C'est incroyable ce qu'on peut faire rapidement avec ces technologies ! #ReactJS #TailwindCSS #webdev",
-            image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80",
+            content: "Découvrez mon nouveau projet #React! @johndoe m'a aidé à l'améliorer. Voici le lien: https://example.com et une image https://picsum.photos/600/400.jpg",
             timestamp: "il y a 3h",
             stats: {
                 comments: 12,
