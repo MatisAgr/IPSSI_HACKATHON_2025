@@ -38,10 +38,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const user = await User.create({
       username,
       hashtag,
-      bio,
+      bio: bio || "", // Default to empty string if bio is not provided
       email,
       premium: false, // Default value for new users
-      password,
+      password, 
       age: age || 0,
       sexe,
       interests: interests || []
