@@ -34,8 +34,8 @@ interface PostCardProps {
 export const formatText = (text: string) => {
   // Expressions régulières pour détecter les différents éléments
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const hashtagRegex = /(\#[a-zA-Z0-9_]+\b)/g;
-  const mentionRegex = /(\@[a-zA-Z0-9_]+\b)/g;
+  const hashtagRegex = /(?:^|\s)(#[a-zA-Z0-9_]+\b)/g;
+  const mentionRegex = /(?:^|\s)(@[a-zA-Z0-9_]+\b)/g;
 
   // Vérifier si une URL est une image
   const isImageUrl = (url: string) => {
