@@ -1,4 +1,5 @@
 import express, { Application } from "express";
+
 import * as dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -7,6 +8,7 @@ import routes from "./routes";
 dotenv.config();
 
 const app: Application = express();
+
 app.use(cors({
   origin: 'http://localhost:5173', // URL de votre frontend
   credentials: true  // Important pour les cookies
