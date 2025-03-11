@@ -150,3 +150,49 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+/**
+ * Vérifie si un email est déjà utilisé
+ * @route POST /api/auth/checkmail
+ * @access Public
+ */
+export const checkEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    // Vérifier si l'email est fourni
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        message: "L'email est requis"
+      });
+      return;
+    }
+
+    // Vérifier si l'email existe déjà dans la base de données
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      // Email déjà utilisé
+      res.status(200).json({
+        success: true,
+        exists: true,
+        message: "Cet email est déjà utilisé"
+      });
+    } else {
+      // Email disponible
+      res.status(200).json({
+        success: true,
+        exists: false,
+        message: "Cet email est disponible"
+      });
+    }
+  } catch (error) {
+    console.error("Erreur lors de la vérification d'email:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la vérification d'email",
+      error: (error as Error).message
+    });
+  }
+};
