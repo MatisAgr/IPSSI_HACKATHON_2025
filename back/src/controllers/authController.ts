@@ -13,16 +13,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       username, 
       email, 
       password, 
-      hashtag,
-      bio,
-      age,
-      sexe,
-      interests
+      date,
+      sexe, 
     } = req.body;
 
     // Check if user already exists with email, username or hashtag
     const userExists = await User.findOne({ 
-      $or: [{ hashtag }, { email }] 
+      $or: [ { email }] 
     });
 
     if (userExists) {
@@ -33,17 +30,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const hashtag = await generateUniqueHashtag(username, User);
+    const age = date ? calculateAge(date) : 0;
+
     // Create new user (password hashing is handled in the model's pre-save hook)
     const user = await User.create({
       username,
-      hashtag,
-      bio: bio || "", // Default to empty string if bio is not provided
+      hashtag, // generated from username
       email,
       premium: false, // Default value for new users
       password, 
-      age: age || 0,
+      age,
       sexe,
-      interests: interests || []
     });
 
     // Generate token for the new user
@@ -195,4 +193,54 @@ export const checkEmail = async (req: Request, res: Response): Promise<void> => 
       error: (error as Error).message
     });
   }
+};
+
+    /**
+ * Calcule l'âge à partir d'une date de naissance
+ * @param birthDate Date de naissance au format YYYY-MM-DD
+ * @returns L'âge en années
+ */
+    function calculateAge(birthDate: string): number {
+      const today = new Date();
+      const birth = new Date(birthDate);
+      
+      // Vérifier si la date est valide
+      if (isNaN(birth.getTime())) {
+        return 0; // Retourner 0 en cas de date invalide
+      }
+      
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDifference = today.getMonth() - birth.getMonth();
+      
+      // Si le mois de naissance n'est pas encore passé cette année ou
+      // si c'est le même mois mais que le jour n'est pas encore passé
+      if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      
+      return age;
+    }
+
+/**
+ * Génère un hashtag unique à partir du nom d'utilisateur
+ * Vérifie si le hashtag existe déjà dans la base de données et ajoute un nombre aléatoire si nécessaire
+ * 
+ * @param username Le nom d'utilisateur à partir duquel générer le hashtag
+ * @param User Le modèle Mongoose User pour vérifier l'unicité
+ * @returns Un hashtag unique
+ */
+export const generateUniqueHashtag = async (username: string, User: any): Promise<string> => {
+  // Générer un hashtag initial à partir du nom d'utilisateur
+  let hashtag = `#${username.toLowerCase().replace(/ /g, "")}`;
+  
+  // Vérifier si ce hashtag existe déjà
+  const existingUserWithHashtag = await User.findOne({ hashtag });
+  
+  // Si le hashtag existe, ajouter un nombre aléatoire
+  if (existingUserWithHashtag) {
+    const randomNum = Math.floor(Math.random() * 10000);
+    hashtag = `#${username.toLowerCase().replace(/ /g, "")}${randomNum}`;
+  }
+  
+  return hashtag;
 };
