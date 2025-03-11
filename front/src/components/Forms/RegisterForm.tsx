@@ -1,5 +1,5 @@
-import { useState, FormEvent, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, FormEvent } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import FadeIn from "../Animations/FadeIn";
 import ConfirmMailModal from "../Modals/ConfirmMailModal";
@@ -46,10 +46,11 @@ const RegisterForm = ({ onRegisterSuccess }: RegisterFormProps) => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // TODO: se servir du mail pour vérification sup
   const [emailChecked, setEmailChecked] = useState(false);
 
   // état webcam
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [webcamError, setWebcamError] = useState<string | null>(null);
   const [webcamPermissionDenied, setWebcamPermissionDenied] = useState(false);
@@ -59,12 +60,9 @@ const RegisterForm = ({ onRegisterSuccess }: RegisterFormProps) => {
     canvasRef,
     initWebcam,
     stopWebcam,
-    takePhoto,
     resetPhoto,
-    handleWebcamSubmit: onWebcamSubmit
   } = useWebcam({
     setWebcamError,
-    setStream,
     setPhotoURL,
     setWebcamPermissionDenied
   });
