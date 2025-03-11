@@ -1,6 +1,7 @@
 interface LoginCredentials {
   email: string;
   password: string;
+  remember?: boolean;
 }
 
 interface LoginResponse {
@@ -9,7 +10,6 @@ interface LoginResponse {
     id: string;
     email: string;
     name?: string;
-    // Ajoutez d'autres propriétés utilisateur si nécessaire
   };
 }
 
@@ -21,12 +21,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
  */
 export const loginUser = async (credentials: LoginCredentials): Promise<LoginResponse> => {
   try {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json"
       },
       body: JSON.stringify(credentials),
+      credentials: "include",
     });
     
     const data = await response.json();
@@ -46,7 +47,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
  */
 export const forgotPassword = async (email: string): Promise<{ message: string }> => {
   try {
-    const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+    const response = await fetch(`${API_URL}/auth/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
