@@ -10,7 +10,7 @@ const IconButton: React.FC<IconButtonProps> = ({ icon, onClick, className = "" }
   return (
     <button
       onClick={onClick}
-      className={`border border-gray-300 hover:bg-gray-100 text-gray-700 p-2 rounded-full transition-colors duration-200 flex items-center justify-center ${className}`}
+      className={`border border-gray-300 hover:bg-gray-100 text-gray-700 p-2 rounded-full transition-colors duration-200 flex items-center justify-center cursor-pointer ${className}`}
     >
       {icon}
     </button>
