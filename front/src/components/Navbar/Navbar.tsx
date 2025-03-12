@@ -1,20 +1,37 @@
-import React, { useState } from "react";
-import { FiMenu, FiX, FiUser, FiLogIn, FiLogOut, FiUsers, FiEdit, FiBookmark, FiHome } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import { FiMenu, FiX, FiUser, FiLogIn, FiLogOut, FiUsers } from "react-icons/fi";
 import NavItem from "./NavItem";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import APP_NAME from "../../constants/AppName";
 import { motion, AnimatePresence } from "framer-motion";
+import Cookies from 'js-cookie';
 
 const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Vérifier si l'utilisateur est authentifié au chargement et à chaque changement de route
+    useEffect(() => {
+        const token = Cookies.get('token');
+        setIsAuthenticated(!!token);
+    }, [location]);
+
+    // Fonction pour gérer la déconnexion
+    const handleLogout = () => {
+        // Supprimer le token des cookies
+        Cookies.remove('token');
+        // Mettre à jour l'état
+        setIsAuthenticated(false);
+        // Rediriger vers la page d'accueil
+        navigate('/');
+        // Fermer le menu mobile si ouvert
+        setIsOpen(false);
+    };
 
     return (
-        <motion.nav 
-            className="fixed top-0 left-0 right-0 bg-white bg-opacity-20 backdrop-blur-lg text-indigo-900 shadow-lg border-b border-white border-opacity-20 z-50 rounded-b-3xl mx-5 p-2"
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        >
+        <nav className="fixed top-0 left-0 right-0 bg-white bg-opacity-20 backdrop-blur-lg text-indigo-900 shadow-lg border-b border-white border-opacity-20 z-50 rounded-b-3xl mx-5 p-2">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
                 {/* Logo avec animation */}
                 <Link to="/" className="flex items-center space-x-2 group">
@@ -47,17 +64,39 @@ const Navbar: React.FC = () => {
                     {isOpen ? <FiX className="text-xl" /> : <FiMenu className="text-xl" />}
                 </motion.button>
 
-                {/* Menu desktop */}
+                {/* Menu desktop - Conditionnel selon l'état d'authentification */}
                 <ul className="hidden md:flex justify-end items-center space-x-3">
-                    <NavItem to="/" icon={<FiHome />} label="Accueil" />
-                    <NavItem to="/feed" icon={<FiUsers />} label="Feed" />
-                    <NavItem to="/login" icon={<FiLogIn />} label="Connexion" />
-                    <NavItem to="/register" icon={<FiUser />} label="Inscription" />
-                    <NavItem to="/profile" icon={<FiUser />} label="Profil" />
+                    
+                    {isAuthenticated ? (
+                        // Liens pour utilisateurs connectés
+                        <>
+                            <NavItem to="/feed" icon={<FiUsers />} label="Feed" />
+                            <NavItem to="/profile" icon={<FiUser />} label="Profil" />
+                            <li className="list-none">
+                                <button 
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 text-indigo-900 hover:bg-white hover:bg-opacity-30 hover:shadow-md"
+                                >
+                                    <div className="flex items-center justify-center text-lg">
+                                        <FiLogOut />
+                                    </div>
+                                    <span className="relative overflow-hidden">
+                                        Déconnexion
+                                    </span>
+                                </button>
+                            </li>
+                        </>
+                    ) : (
+                        // Liens pour visiteurs
+                        <>
+                            <NavItem to="/login" icon={<FiLogIn />} label="Connexion" />
+                            <NavItem to="/register" icon={<FiUser />} label="Inscription" />
+                        </>
+                    )}
                 </ul>
             </div>
 
-            {/* Menu mobile avec animation */}
+            {/* Menu mobile avec animation - Conditionnel selon l'état d'authentification */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
@@ -75,17 +114,39 @@ const Navbar: React.FC = () => {
                         >
                             {/* Liste des liens mobile */}
                             <ul className="flex flex-col space-y-2 py-2">
-                                <NavItem to="/" icon={<FiHome />} label="Accueil" />
-                                <NavItem to="/feed" icon={<FiUsers />} label="Feed" />
-                                <NavItem to="/login" icon={<FiLogIn />} label="Connexion" />
-                                <NavItem to="/register" icon={<FiUser />} label="Inscription" />
-                                <NavItem to="/profile" icon={<FiUser />} label="Profil" />
+                                
+                                {isAuthenticated ? (
+                                    // Liens pour utilisateurs connectés
+                                    <>
+                                        <NavItem to="/feed" icon={<FiUsers />} label="Feed" />
+                                        <NavItem to="/profile" icon={<FiUser />} label="Profil" />
+                                        <li className="list-none">
+                                            <button 
+                                                onClick={handleLogout}
+                                                className="flex items-center w-full gap-2 px-4 py-2 rounded-full transition-all duration-300 text-indigo-900 hover:bg-white hover:bg-opacity-30 hover:shadow-md"
+                                            >
+                                                <div className="flex items-center justify-center text-lg">
+                                                    <FiLogOut />
+                                                </div>
+                                                <span className="relative overflow-hidden">
+                                                    Déconnexion
+                                                </span>
+                                            </button>
+                                        </li>
+                                    </>
+                                ) : (
+                                    // Liens pour visiteurs
+                                    <>
+                                        <NavItem to="/login" icon={<FiLogIn />} label="Connexion" />
+                                        <NavItem to="/register" icon={<FiUser />} label="Inscription" />
+                                    </>
+                                )}
                             </ul>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
-        </motion.nav>
+        </nav>
     );
 };
 
