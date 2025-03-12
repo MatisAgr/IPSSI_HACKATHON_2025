@@ -64,7 +64,7 @@ export default function Profile() {
                 // verif profile api
                 if (response.success && response.data) {
                     setUserProfile(response.data);
-                    console.log(response.data);
+                    console.log("Profile:" + response.data);
                 } else {
                     setProfileError(response.message || "Impossible de charger votre profil");
                 }
@@ -99,6 +99,7 @@ export default function Profile() {
 
             try {
                 const response = await getMyPosts();
+                console.log("Posts:" + response.data);
 
                 if (response.success) {
                     setUserPosts(response.data);
@@ -232,7 +233,17 @@ export default function Profile() {
                                                     <PostCard
                                                         id={post.id}
                                                         key={post.id}
-                                                        user={post.user}
+                                                        user={userProfile ? {
+                                                            name: userProfile.username,
+                                                            username: userProfile.hashtag,
+                                                            avatar: userProfile.pdp || "",
+                                                            premium: userProfile.premium
+                                                        } : {
+                                                            name: 'Chargement...',
+                                                            username: '...',
+                                                            avatar: '',
+                                                            premium: false
+                                                        }}
                                                         content={post.content}
                                                         image={post.image}
                                                         timestamp={post.timestamp}

@@ -146,12 +146,11 @@ export default function PostCard({
     }
   };
 
-  console.log('PostCard', id, user, content, image, timestamp, stats, isLiked, isRetweeted, isBookmarked, isPreview);
-
   const previewClass = isPreview ? "pointer-events-none opacity-75" : "";
 
   return (
     <div className={`bg-white border border-gray-200 rounded-xl p-4 mb-4 ${isPreview ? '' : 'hover:bg-gray-50'} transition-colors`}>
+
       {/* En-tête du post */}
       <div className="flex justify-between">
         <div className="flex items-start space-x-3">
@@ -164,7 +163,7 @@ export default function PostCard({
           </div>
           <div>
             <div className="flex items-center">
-              <h4 className="font-bold text-gray-900">{user.name}</h4>
+              <h4 className="font-bold text-gray-900 mr-1">{user.name}</h4>
               {user.premium && (
                 <PremiumIcon />
               )}
@@ -257,6 +256,7 @@ export default function PostCard({
           disable={isPreview}
         />
       </div>
+
     </div>
   );
 }
