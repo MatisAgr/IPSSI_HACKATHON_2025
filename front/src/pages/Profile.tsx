@@ -99,7 +99,7 @@ export default function Profile() {
     // Adapte les données du profil pour le composant UserCard
     const userCardData = userProfile ? {
         name: userProfile.username, // On utilise le username comme nom
-        username: userProfile.hashtag, // On utilise le hashtag comme username
+        username: "@" + userProfile.hashtag, // On utilise le hashtag comme username
         bio: userProfile.bio || "Aucune biographie",
         followers: "0", // remplacer par les vraies données quand api dispo
         following: "0", // remplacer par les vraies données quand api dispo
