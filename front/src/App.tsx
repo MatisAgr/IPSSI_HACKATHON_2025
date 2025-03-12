@@ -10,6 +10,7 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 import Navbar from "./components/Navbar/Navbar";
 
 import Home from "./pages/Home";
+import Feed from "./pages/Feed";
 
 // import Dashboard from "./Pages/Dashboard/Dashboard";
 
@@ -20,6 +21,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 
 import Page404 from "./pages/Page404";
+import Admin from "./pages/Admin";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,23 +41,21 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-
-            {/* <Route path="/profile" element={
+            <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
               </ProtectedRoute>
-            } /> */}
-            <Route path="/profile" element={<Profile />} />
+            } />
 
+            <Route path="/feed" element={
+              <ProtectedRoute>
+                <Feed />
+              </ProtectedRoute>
+            } />
 
-
-            {/* <Route path="/feed" element={<Feed />} */}
-
-            {/* <Route path="/profile element={<Profile />} /> */}
-            {/* <Route path="/profile/edit" element={<EditProfile />} /> */}
+            <Route path="/admin" element={<Admin />} />
 
             <Route path="*" element={<Page404 />} />
-
 
           </Routes>
         </main>

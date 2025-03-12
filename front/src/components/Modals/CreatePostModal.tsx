@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiSend, FiCheck } from 'react-icons/fi';
+import { FiX, FiSend, FiCheck, FiAlertCircle } from 'react-icons/fi';
 
 import PostCard from '../Cards/PostCard';
+import { createPost, CreatePostData } from '../../callApi/CallApi_CreatePost';
 
 interface CreatePostModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit?: (postData: { content: string; images: string[] }) => void;
+    // onSubmit?: (postData: { content: string }) => void;
     user: {
         name: string;
         username: string;
@@ -21,7 +22,7 @@ const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5
 export default function CreatePostModal({
     isOpen,
     onClose,
-    onSubmit,
+    // onSubmit,
     user = {
         name: 'Utilisateur',
         username: 'utilisateur',
@@ -30,11 +31,11 @@ export default function CreatePostModal({
     }
 }: CreatePostModalProps) {
     const [content, setContent] = useState('');
-    const [images, setImages] = useState<string[]>([]);
     const [isFocused, setIsFocused] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
@@ -89,7 +90,7 @@ export default function CreatePostModal({
     // Fermer le modal avec animation
     const handleClose = () => {
         if (isSubmitting) return; // Ne pas fermer pendant la soumission
-        
+
         setIsClosing(true);
         // Attendre que l'animation de sortie se termine avant de fermer réellement
         setTimeout(() => {
@@ -102,25 +103,45 @@ export default function CreatePostModal({
     };
 
     // Soumettre le formulaire
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (content.trim()) {
             // Animation de soumission
             setIsSubmitting(true);
-            
-            // Simuler un délai pour voir l'animation
-            setTimeout(() => {
+            setError(null);
+
+            try {
+                // Préparer les données pour l'API
+                const postData: CreatePostData = {
+                    content: content.trim(),
+                };
+
+                // Appel à l'API
+                const response = await createPost(postData);
+
+                if (response.success) {
+                    // Montrer l'animation de succès
+                    setIsSuccess(true);
+
+                    // Après l'animation, fermer le modal et réinitialiser
+                    setTimeout(() => {
+                        // Notifier le composant parent que le post a été créé
+                        // onSubmit?.({ content });
+
+                        // Réinitialiser et fermer
+                        setContent('');
+                        handleClose();
+                    }, 1500);
+                } else {
+                    // Gérer l'erreur retournée par l'API
+                    setError(response.message);
+                    setIsSubmitting(false);
+                }
+            } catch (err) {
+                // Gérer les erreurs inattendues
+                console.error("Erreur lors de la création du post:", err);
+                setError("Une erreur inattendue s'est produite");
                 setIsSubmitting(false);
-                setIsSuccess(true);
-                
-                // Envoyer les données après un court délai pour montrer l'animation de succès
-                setTimeout(() => {
-                    onSubmit?.({ content, images });
-                    // Reset le formulaire et fermer avec l'animation fluide
-                    setContent('');
-                    setImages([]);
-                    handleClose();
-                }, 1500); // Augmenter à 1500ms pour une animation de succès plus longue
-            }, 800);
+            }
         }
     };
 
@@ -130,12 +151,12 @@ export default function CreatePostModal({
     return (
         <AnimatePresence mode="wait">
 
-            <motion.div 
+            <motion.div
                 className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden"
                 initial={{ backdropFilter: "blur(0px)", backgroundColor: "rgba(0, 0, 0, 0)" }}
-                animate={{ 
-                    backdropFilter: isClosing ? "blur(0px)" : "blur(5px)", 
-                    backgroundColor: isClosing ? "rgba(0, 0, 0, 0)" : "rgba(0, 0, 0, 0.5)" 
+                animate={{
+                    backdropFilter: isClosing ? "blur(0px)" : "blur(5px)",
+                    backgroundColor: isClosing ? "rgba(0, 0, 0, 0)" : "rgba(0, 0, 0, 0.5)"
                 }}
                 exit={{ backdropFilter: "blur(0px)", backgroundColor: "rgba(0, 0, 0, 0)" }}
                 transition={{ duration: 0.3 }}
@@ -145,16 +166,16 @@ export default function CreatePostModal({
                     ref={modalRef}
                     className="bg-white rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl"
                     initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                    animate={{ 
-                        opacity: isClosing ? 0 : 1, 
-                        y: isClosing ? 50 : 0, 
-                        scale: isClosing ? 0.9 : 1 
+                    animate={{
+                        opacity: isClosing ? 0 : 1,
+                        y: isClosing ? 50 : 0,
+                        scale: isClosing ? 0.9 : 1
                     }}
                     exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                    transition={{ 
-                        type: 'spring', 
-                        damping: 25, 
-                        stiffness: 300 
+                    transition={{
+                        type: 'spring',
+                        damping: 25,
+                        stiffness: 300
                     }}
                     key="modal-content"
                 >
@@ -187,6 +208,14 @@ export default function CreatePostModal({
 
                                 {/* Zone de texte */}
                                 <div className="flex-grow">
+
+                                    {error && (
+                                        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm flex items-start">
+                                            <FiAlertCircle className="mr-2 mt-0.5 flex-shrink-0" />
+                                            <span>{error}</span>
+                                        </div>
+                                    )}
+
                                     <div
                                         className={`border rounded-lg p-2 transition-colors ${isFocused ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-200'
                                             }`}
@@ -207,13 +236,12 @@ export default function CreatePostModal({
                                     <div className="flex justify-end items-center mt-3">
                                         <motion.button
                                             onClick={handleSubmit}
-                                            className={`px-4 py-2 rounded-full text-white font-medium flex items-center space-x-2 ${
-                                                isSuccess 
+                                            className={`px-4 py-2 rounded-full text-white font-medium flex items-center space-x-2 ${isSuccess
                                                     ? 'bg-green-500'
                                                     : content.trim()
                                                         ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer'
                                                         : 'bg-blue-200 cursor-not-allowed'
-                                            }`}
+                                                }`}
                                             disabled={(!content.trim()) || isSubmitting || isSuccess}
                                             whileHover={
                                                 (content.trim()) && !isSubmitting && !isSuccess
@@ -226,9 +254,9 @@ export default function CreatePostModal({
                                                     : {}
                                             }
                                             animate={
-                                                isSuccess 
-                                                    ? { 
-                                                        scale: [1, 1.15, 1], 
+                                                isSuccess
+                                                    ? {
+                                                        scale: [1, 1.15, 1],
                                                         backgroundColor: ['#3B82F6', '#10b981', '#10b981', '#3B82F6'],
                                                         transition: {
                                                             duration: 1.5,
@@ -236,7 +264,7 @@ export default function CreatePostModal({
                                                                 times: [0, 0.2, 0.8, 1],
                                                                 duration: 1.5
                                                             }
-                                                        } 
+                                                        }
                                                     }
                                                     : {}
                                             }
@@ -276,7 +304,7 @@ export default function CreatePostModal({
                             <h3 className="text-sm font-medium text-gray-500 mb-3">Prévisualisation</h3>
                             <motion.div
                                 animate={
-                                    isSubmitting 
+                                    isSubmitting
                                         ? { y: [0, -10], opacity: [1, 0] }
                                         : isSuccess
                                             ? { scale: 0.9, opacity: 0.5 }
@@ -285,11 +313,12 @@ export default function CreatePostModal({
                                 transition={{ duration: 0.3 }}
                             >
                                 <PostCard
+                                    id="preview-post"
                                     user={{
                                         name: userName,
                                         username: userUsername,
                                         avatar: userProfileImage,
-                                        verified: userVerified
+                                        premium: userVerified
                                     }}
                                     content={content}
                                     timestamp="À l'instant"
@@ -301,11 +330,11 @@ export default function CreatePostModal({
                                     isPreview={true}
                                 />
                             </motion.div>
-                            
+
                             {/* Animation de succès */}
                             <AnimatePresence mode="wait">
                                 {isSuccess && !isClosing && (
-                                    <motion.div 
+                                    <motion.div
                                         className="absolute inset-0 flex items-center justify-center bg-gradient-to-tr from-blue-500/30 to-green-500/30"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
@@ -313,19 +342,19 @@ export default function CreatePostModal({
                                         transition={{ duration: 0.4 }}
                                         key="success-overlay"
                                     >
-                                        <motion.div 
+                                        <motion.div
                                             className="bg-white rounded-full p-6 shadow-xl"
                                             initial={{ scale: 0.5, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
                                             exit={{ scale: 0.7, opacity: 0 }}
-                                            transition={{ 
-                                                type: "spring", 
+                                            transition={{
+                                                type: "spring",
                                                 damping: 20,
-                                                exit: { duration: 0.3 } 
+                                                exit: { duration: 0.3 }
                                             }}
                                             key="success-icon-container"
                                         >
-                                            <motion.div 
+                                            <motion.div
                                                 className="text-green-500 text-5xl"
                                                 animate={{
                                                     scale: [1, 1.2, 1, 1.1, 1],
