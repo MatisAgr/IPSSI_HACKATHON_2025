@@ -2,7 +2,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface INotification extends Document {
     user_id: mongoose.Types.ObjectId;
-    post_id: mongoose.Types.ObjectId;
+    post_id?: mongoose.Types.ObjectId;
+    actor_id?: mongoose.Types.ObjectId;
     type: string;
     read: boolean;
     createdAt: Date;
@@ -16,8 +17,11 @@ const NotificationSchema = new Schema({
     },
     post_id: {
         type: Schema.Types.ObjectId,
-        ref: 'Post',
-        required: true
+        ref: 'Post'
+    },
+    actor_id: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
     },
     type: {
         type: String,

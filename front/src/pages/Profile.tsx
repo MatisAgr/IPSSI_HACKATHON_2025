@@ -5,19 +5,24 @@ import CreatePostButton from '../components/Buttons/CreatePostButton';
 import { UserCard } from '../components/Cards/UserCard';
 import { ProfileSidebar } from '../components/Menu/ProfileSidebar';
 import PostCard from '../components/Cards/PostCard';
+import UpdateUserModal from '../components/Modals/UpdateUserModal';
+
 import { getMyPosts, PostData } from '../callApi/CallApi_GetMyPosts';
 import { getMyProfile, UserProfileData } from '../callApi/CallApi_GetMyProfile';
+import { getMyFollowCount, FollowCountResponse } from '../callApi/CallApi_CountMyFollow';
 
 export default function Profile() {
     const [activeTab, setActiveTab] = useState('posts');
     const [userPosts, setUserPosts] = useState<PostData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Nouvel état pour les données de profil
     const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [profileError, setProfileError] = useState<string | null>(null);
+    const [followCounts, setFollowCounts] = useState({ followers: '0', following: '0' });
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
     // Fonction pour formater les timestamps
     const formatTimestamp = (date: Date): string => {
@@ -54,12 +59,27 @@ export default function Profile() {
 
             try {
                 const response = await getMyProfile();
-                
+                const followResponse = await getMyFollowCount();
+
+                // verif profile api
                 if (response.success && response.data) {
                     setUserProfile(response.data);
+                    console.log(response.data);
                 } else {
                     setProfileError(response.message || "Impossible de charger votre profil");
                 }
+
+                // verif follow api
+                if (followResponse.success && followResponse.data) {
+                    setFollowCounts({
+                        followers: followResponse.data.followers.toString(),
+                        following: followResponse.data.following.toString()
+                    });
+                    console.log("Compteurs de follow récupérés:", followResponse.data);
+                } else {
+                    console.error("Erreur lors de la récupération des compteurs de follow:", followResponse.message);
+                }
+
             } catch (err) {
                 setProfileError("Une erreur est survenue lors du chargement de votre profil");
                 console.error("Erreur lors du chargement du profil:", err);
@@ -96,13 +116,16 @@ export default function Profile() {
         loadPosts();
     }, []);
 
-    // Adapte les données du profil pour le composant UserCard
+    const handleProfileUpdate = (updatedData: Partial<UserProfileData>) => {
+        setUserProfile(prev => prev ? { ...prev, ...updatedData } : null);
+    };
+
     const userCardData = userProfile ? {
-        name: userProfile.username, // On utilise le username comme nom
-        username: "@" + userProfile.hashtag, // On utilise le hashtag comme username
+        name: userProfile.username,
+        username: "@" + userProfile.hashtag,
         bio: userProfile.bio || "Aucune biographie",
-        followers: "0", // remplacer par les vraies données quand api dispo
-        following: "0", // remplacer par les vraies données quand api dispo
+        followers: followCounts.followers || 'n/a',
+        following: followCounts.following || 'n/a',   
         profileImage: userProfile.pdp || "",
         coverImage: userProfile.pdb || "",
         joinDate: formatJoinDate(userProfile.createdAt),
@@ -119,7 +142,7 @@ export default function Profile() {
         joinDate: ''
     };
 
-    // Formater les posts pour les adapter au composant PostCard
+    // Formater les posts pour composant PostCard
     const formattedPosts = userPosts.map(post => ({
         id: post.id,
         user: {
@@ -159,9 +182,12 @@ export default function Profile() {
                         </button>
                     </div>
                 ) : (
-                    <UserCard user={userCardData} />
+                    <UserCard
+                        user={userCardData}
+                        onSettingsClick={() => setIsUpdateModalOpen(true)}
+                    />
                 )}
-                
+
                 <div className="flex flex-col md:flex-row">
                     <div className="w-full md:w-64 p-4">
                         <ProfileSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -199,12 +225,6 @@ export default function Profile() {
                                         ) : formattedPosts.length === 0 ? (
                                             <div className="bg-gray-50 p-8 rounded-lg text-center">
                                                 <p className="text-gray-600 mb-4">Vous n'avez pas encore publié de posts.</p>
-                                                <button
-                                                    onClick={() => document.getElementById('create-post-button')?.click()}
-                                                    className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
-                                                >
-                                                    Créer votre premier post
-                                                </button>
                                             </div>
                                         ) : (
                                             <>
@@ -225,31 +245,38 @@ export default function Profile() {
 
                                 {activeTab === 'replies' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des réponses dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
 
                                 {activeTab === 'retweets' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des retweets dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
 
                                 {activeTab === 'likes' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des likes dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
 
                                 {activeTab === 'bookmarks' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des signets dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
                             </motion.div>
                         </AnimatePresence>
                     </div>
                 </div>
+
+                <UpdateUserModal
+                    isOpen={isUpdateModalOpen}
+                    onClose={() => setIsUpdateModalOpen(false)}
+                    onUpdate={handleProfileUpdate}
+                    userData={userProfile}
+                />
             </div>
         </div>
     );

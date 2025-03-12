@@ -195,7 +195,9 @@ export const updateMyProfile = async (req: AuthRequest, res: Response): Promise<
       bio,
       pdp,
       pdb,
-      interests
+      interests,
+      premium,
+      username
     } = req.body;
 
     // Préparer les champs à mettre à jour
@@ -205,6 +207,8 @@ export const updateMyProfile = async (req: AuthRequest, res: Response): Promise<
     if (pdp !== undefined) updateFields.pdp = pdp;
     if (pdb !== undefined) updateFields.pdb = pdb;
     if (interests !== undefined) updateFields.interests = interests;
+    if (premium !== undefined) updateFields.premium = premium;  // Ajout de premium
+    if (username !== undefined) updateFields.username = username;  // Ajout de username
 
     // Mettre à jour l'utilisateur
     const updatedUser = await User.findByIdAndUpdate(
