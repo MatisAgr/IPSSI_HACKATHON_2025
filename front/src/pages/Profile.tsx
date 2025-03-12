@@ -104,10 +104,9 @@ export default function Profile() {
         setUserProfile(prev => prev ? { ...prev, ...updatedData } : null);
     };
 
-    // Adapte les données du profil pour le composant UserCard
     const userCardData = userProfile ? {
-        name: userProfile.username, // On utilise le username comme nom
-        username: "@" + userProfile.hashtag, // On utilise le hashtag comme username
+        name: userProfile.username,
+        username: "@" + userProfile.hashtag,
         bio: userProfile.bio || "Aucune biographie",
         followers: "0", // remplacer par les vraies données quand api dispo
         following: "0", // remplacer par les vraies données quand api dispo
@@ -127,7 +126,7 @@ export default function Profile() {
         joinDate: ''
     };
 
-    // Formater les posts pour les adapter au composant PostCard
+    // Formater les posts pour composant PostCard
     const formattedPosts = userPosts.map(post => ({
         id: post.id,
         user: {
