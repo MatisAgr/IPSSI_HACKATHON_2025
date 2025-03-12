@@ -23,8 +23,8 @@ export default function Register() {
       {/* Bulle principale contenant le formulaire */}
       <div className="relative w-full max-w-md mx-4 bg-white bg-opacity-80 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden">
         {/* Formes décoratives */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 rounded-full opacity-10"></div>
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500 rounded-full opacity-10"></div>
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 rounded-full opacity-10 pointer-events-none"></div>
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500 rounded-full opacity-10 pointer-events-none"></div>
         
         <div className="px-8 pt-10 pb-8">
           {/* Titre avec le nom de l'application */}

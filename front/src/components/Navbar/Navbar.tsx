@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FiMenu, FiX, FiUser, FiLogIn, FiLogOut, FiUsers, FiEdit, FiBookmark } from "react-icons/fi";
 import NavItem from "./NavItem"; // 👈 On importe le composant
 import { Link } from "react-router-dom";
+import APP_NAME from "../../constants/AppName";
 
 const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +12,7 @@ const Navbar: React.FC = () => {
             <div className="container mx-auto flex justify-between items-center">
                 {/* Logo - nom de l'app à trouver plus tard */}
                 <Link to="/feed" className="flex items-center space-x-2">
-                    <h1 className="text-xl font-bold">FaceTer</h1>
+                    <h1 className="text-xl font-bold">{APP_NAME}</h1>
                 </Link>
 
                 {/* Menu Burger (Mobile) */}
@@ -25,6 +26,7 @@ const Navbar: React.FC = () => {
                     <NavItem to="/register" icon={<FiUser />} label="Inscription" />
                     <NavItem to="/login" icon={<FiLogIn />} label="Connexion" />
                     <NavItem to="/logout" icon={<FiLogOut />} label="Déconnexion" />
+                    <NavItem to="/profile" icon={<FiUser />} label="Profil" />
                     {/* <NavItem to="/followers" icon={<FiUsers />} label="Followers" /> */}
                     {/* <NavItem to="/post_saved" icon={<FiBookmark />} label="Posts enregistrés" /> */}
                 </ul>

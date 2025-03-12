@@ -25,7 +25,7 @@ const UserSchema = new Schema({
   username: {
     type: String,
     required: true,     
-    unique: true,       
+    unique: false,       
     trim: true         
   },
   
@@ -50,7 +50,8 @@ const UserSchema = new Schema({
 
     premium:{
         type: Boolean,
-        required: true     
+        required: true,
+        default: false
     },
 
     password: {

@@ -50,11 +50,11 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
 
       {/* Section profil (photo + infos) */}
       <div className="p-4 flex flex-col md:flex-row gap-6 relative">
-        
-        
-        
+
         {/* Photo de profil */}
         <UserPicture profileImage={user.profileImage || "https://images.unsplash.com/photo-1741514229652-9baef370a916?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"} />
+
+
 
 
         {/* Informations utilisateur */}
@@ -82,7 +82,6 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
           )}
         </UserActions>
         
-
 
       </div>
     </div>

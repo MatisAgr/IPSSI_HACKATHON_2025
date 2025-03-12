@@ -36,7 +36,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, setAc
         <motion.button
           key={tab.id}
           onClick={() => setActiveTab(tab.id)}
-          className={`px-4 py-3 text-left rounded-full transition-colors flex items-center
+          className={`px-4 py-3 text-left rounded-full transition-colors flex items-center cursor-pointer
             ${
               activeTab === tab.id
                 ? 'bg-blue-100 text-blue-600 font-semibold'

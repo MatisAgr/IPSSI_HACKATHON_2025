@@ -1,23 +1,36 @@
 import express, { Application } from "express";
-import * as dotenv from "dotenv"; // Correct import
+
+import * as dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
+import routes from "./routes";
 
 dotenv.config();
 
 const app: Application = express();
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:5173', // URL de votre frontend
+  credentials: true  // Important pour les cookies
+}));
+
 app.use(express.json());
 
-// Connexion à MongoDB (supprime les options obsolètes)
-mongoose.connect(process.env.MONGO_URI as string)
-  .then(() => console.log("MongoDB connecté"))
-  .catch(err => console.error("Erreur MongoDB :", err));
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI as string, {
+    user: process.env.MONGO8_USER,
+    pass: process.env.MONGO8_PASSWORD,
+})
+    .then(() => console.log("MongoDB connected"))
+    .catch(err => console.error("MongoDB error:", err));
 
 app.get("/", (req, res) => {
-  res.send("🚀 API Tweeter en TypeScript est opérationnelle !");
+  res.send("🚀 Tweeter API in TypeScript is running!");
 });
 
-// Lancement du serveur
+// Apply API routes
+app.use("/api", routes);
+
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Serveur lancé sur le port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
