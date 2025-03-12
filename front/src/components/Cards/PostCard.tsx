@@ -7,6 +7,7 @@ import {
   FiMoreHorizontal,
   FiShare
 } from 'react-icons/fi';
+import PremiumIcon from '../../constants/PremiumIcon';
 import ActionButton from '../Buttons/ActionButton';
 import { toggleLike } from '../../callApi/CallApi_ToggleLike';
 import { toggleRetweet } from '../../callApi/CallApi_ToggleRT';
@@ -18,7 +19,7 @@ interface PostCardProps {
     name: string;
     username: string;
     avatar: string;
-    verified?: boolean;
+    premium?: boolean;
   };
   content: string;
   image?: string;
@@ -145,6 +146,8 @@ export default function PostCard({
     }
   };
 
+  console.log('PostCard', id, user, content, image, timestamp, stats, isLiked, isRetweeted, isBookmarked, isPreview);
+
   const previewClass = isPreview ? "pointer-events-none opacity-75" : "";
 
   return (
@@ -162,10 +165,8 @@ export default function PostCard({
           <div>
             <div className="flex items-center">
               <h4 className="font-bold text-gray-900">{user.name}</h4>
-              {user.verified && (
-                <span className="ml-1 text-blue-500">
-                  {/* ... icône de vérification ... */}
-                </span>
+              {user.premium && (
+                <PremiumIcon />
               )}
               <span className="text-gray-500 ml-2 font-normal">@{user.username}</span>
               <span className="text-gray-400 mx-1">·</span>

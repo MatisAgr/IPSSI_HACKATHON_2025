@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiX, FiSave, FiUser, FiImage, FiAlertCircle, FiCheckCircle, FiEdit } from "react-icons/fi";
-import { FaCheck } from "react-icons/fa";
+import PremiumIcon from "../../constants/PremiumIcon";
 import { UserProfileData } from "../../callApi/CallApi_GetMyProfile";
 import { updateUserProfile } from "../../callApi/CallApi_UpdateMyProfile";
 import FadeIn from "../Animations/FadeIn";
@@ -406,11 +406,9 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                               </div>
                               <div className="pt-2">
                                 <div className="flex items-center">
-                                  <h3 className="text-lg font-bold text-gray-800">{username || userData?.username}</h3>
+                                  <h3 className="text-lg font-bold text-gray-800 mr-2">{username || userData?.username}</h3>
                                   {isPremium && (
-                                    <div className="text-blue-500 bg-blue-100 p-1 rounded-full">
-                                      <FaCheck className="h-3 w-3" />
-                                    </div>
+                                    <PremiumIcon />
                                   )}
                                 </div>
                                 <p className="text-gray-500 text-sm">@{userData?.hashtag}</p>

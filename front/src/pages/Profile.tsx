@@ -149,7 +149,7 @@ export default function Profile() {
             name: post.author.username,
             username: post.author.username,
             avatar: post.author.pdp || "",
-            verified: false
+            premium: false
         },
         content: post.texte,
         image: post.media?.type === 'image' ? post.media.url : undefined,
@@ -230,6 +230,7 @@ export default function Profile() {
                                             <>
                                                 {formattedPosts.map(post => (
                                                     <PostCard
+                                                        id={post.id}
                                                         key={post.id}
                                                         user={post.user}
                                                         content={post.content}
