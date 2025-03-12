@@ -19,15 +19,17 @@ interface UserCardProps {
     profileImage: string;
     coverImage: string;
     joinDate: string;
+    isPremium?: boolean;
   };
-  // Nouvelle prop pour gérer le clic sur les paramètres
   onSettingsClick?: () => void;
+  isAuthenticated?: boolean;
 }
 
-export const UserCard: React.FC<UserCardProps> = ({ user, onSettingsClick }) => {
-  const [isPremium, setIsPremium] = React.useState(true);
-  const [isAuthenticated, setIsAuthenticated] = React.useState(true);
-
+export const UserCard: React.FC<UserCardProps> = ({ 
+  user, 
+  onSettingsClick, 
+  isAuthenticated = true // TODO: faire la logique pour déterminer si l'utilisateur est authentifié
+}) => {
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <ProfileBanner coverImage={user.coverImage || "https://ralfvanveen.com/wp-content/uploads/2021/06/Placeholder-_-Begrippenlijst.svg"} />
@@ -38,7 +40,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onSettingsClick }) => 
         <UserPicture profileImage={user.profileImage || "https://images.unsplash.com/photo-1741514229652-9baef370a916?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"} />
 
         {/* Informations utilisateur */}
-        <UserFeatures user={user} isPremium={isPremium} />
+        <UserFeatures user={user} isPremium={user.isPremium || false} />
 
         {/* Boutons d'action */}
         <UserActions>

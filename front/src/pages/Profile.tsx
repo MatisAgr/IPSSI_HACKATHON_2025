@@ -60,6 +60,7 @@ export default function Profile() {
 
                 if (response.success && response.data) {
                     setUserProfile(response.data);
+                    console.log(response.data);
                 } else {
                     setProfileError(response.message || "Impossible de charger votre profil");
                 }
