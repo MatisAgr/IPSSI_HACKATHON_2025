@@ -33,23 +33,20 @@ const InfiniteScroll = ({
   const scrollEventRef = useRef<any>(null);
   const initialLoadDone = useRef<boolean>(false);
   const loadMoreCalledRecently = useRef<boolean>(false);
-  const lastScrollHeight = useRef<number>(0);
-  
-  // Fonction pour vérifier seulement pendant le défilement
+    
   const checkScrollPosition = () => {
     // Protection contre les appels multiples, trop rapides ou inutiles
     if (!scrollRef.current || isLoading || !hasMore || loadMoreCalledRecently.current) return;
     
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-
-    // Éviter les vérifications inutiles si la hauteur n'a pas changé
-    if (lastScrollHeight.current === scrollHeight && lastScrollHeight.current > 0) return;
-    lastScrollHeight.current = scrollHeight;
+  
+    // Log pour le debugging
+    console.log(`Scroll position: ${scrollTop + clientHeight}/${scrollHeight}, threshold: ${threshold}, remaining: ${scrollHeight - scrollTop - clientHeight}`);
     
     // Uniquement charger si on est proche de la fin du scroll
+    // CORRECTION: Réduire le seuil pour être plus sensible
     if (scrollHeight > clientHeight && scrollHeight - scrollTop - clientHeight < threshold) {
       loadMoreCalledRecently.current = true;
-      // Console pour debugging
       console.log('📜 Approaching end of scroll, loading more...');
       loadMore();
       loaderShown.current = true;
@@ -72,10 +69,13 @@ const InfiniteScroll = ({
   useEffect(() => {
     const scrollElement = scrollRef.current;
     if (!scrollElement) return;
-
-    // Plus long délai pour le throttle
-    scrollEventRef.current = throttle(checkScrollPosition, 500);
+  
+    // Plus long délai pour le throttle - RÉDUIRE pour plus de réactivité
+    scrollEventRef.current = throttle(checkScrollPosition, 200); // Réduit de 500ms à 200ms
     scrollElement.addEventListener('scroll', scrollEventRef.current);
+    
+    // IMPORTANT: Vérifier aussi au montage du composant
+    setTimeout(() => checkScrollPosition(), 500);
     
     return () => {
       if (scrollElement && scrollEventRef.current) {

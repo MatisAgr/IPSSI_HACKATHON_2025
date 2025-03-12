@@ -90,39 +90,37 @@ export default function Feed() {
 
   const loadingRef = useRef(false);
 
-  // Modification critique #2: Optimiser la fonction loadMorePosts  
   const loadMorePosts = useCallback(async () => {
-    // Protection contre les appels multiples et inutiles
     if (isLoading || loadingRef.current || !hasMore) return;
   
     setIsLoading(true);
     loadingRef.current = true;
   
     try {
-      // Ajouter un délai pour déboguer et éviter les requêtes trop rapides
       console.log(`🔄 Chargement des posts - page ${page}`);
       
-      const response = await getPosts(page, 5);
-
-      console.log(response);
+      const response = await getPosts(page);
+      console.log("Réponse complète:", response);
       
       if (!response.success) {
         console.error('❌ Erreur lors du chargement des posts:', response.message);
         setHasMore(false);
         return;
       }
-  
-      // Si aucun post n'est retourné ou tableau vide
-      if (!response.data || response.data.length === 0) {
+      
+      // CORRECTION: La structure est response.data.posts et non response.data?.posts
+      const postsArray = response.data?.posts || [];
+      console.log("Posts array:", postsArray);
+      
+      if (postsArray.length === 0) {
         console.log('📭 Aucun nouveau post trouvé');
         setHasMore(false);
         return;
       }
-  
-      console.log(`✅ ${response.data.length} posts récupérés`);
-  
-      // Transformer les données pour correspondre au format attendu par PostCard
-      const formattedPosts = response.data.map((post: any) => ({
+      
+      console.log(`✅ ${postsArray.length} posts récupérés`);
+      
+      const formattedPosts = postsArray.map(({ post, stats }: any) => ({
         id: post._id || `post-${Date.now()}-${Math.random()}`,
         user: {
           name: post.author?.username || 'Utilisateur',
@@ -134,23 +132,29 @@ export default function Feed() {
         image: post.media?.url || post.image || null,
         timestamp: formatTimeAgo(new Date(post.createdAt || Date.now())),
         stats: {
-          comments: post.comments?.length || 0,
-          retweets: post.retweets?.length || 0,
-          likes: post.likes?.length || 0
+          comments: stats.replies || 0,
+          retweets: stats.retweets || 0,
+          likes: stats.likes || 0,
+          bookmarks: stats.signets || 0
         },
         isLiked: post.isLiked || false, 
         isRetweeted: post.isRetweeted || false,
         isBookmarked: post.isBookmarked || false
       }));
-  
+      
       setPosts(prevPosts => [...prevPosts, ...formattedPosts]);
       setPage(prevPage => prevPage + 1);
+      
+      // CORRECTION: Utiliser la bonne structure pour la pagination
+      if (response.data?.pagination) {
+        setHasMore(response.data.pagination.hasMore);
+        console.log(`📄 Pagination: page ${response.data.pagination.page}/${response.data.pagination.pages}, hasMore: ${response.data.pagination.hasMore}`);
+      }
       
     } catch (error) {
       console.error("❌ Erreur lors du chargement des posts:", error);
       setHasMore(false);
     } finally {
-      // Petite pause pour éviter des requêtes trop rapides en cas d'erreurs
       setTimeout(() => {
         setIsLoading(false);
         loadingRef.current = false;
@@ -249,21 +253,21 @@ export default function Feed() {
             {/* Flux principal - uniquement scrollable */}
             <div className="col-span-1 md:col-span-2 lg:col-span-3 h-full pt-4">
               <h1 className="sr-only">Flux d'actualités</h1>
-
+            
               <div
-                className="h-full overflow-y-auto pb-20 scrollbar-hide"
+                className="h-[calc(100vh-80px)] overflow-auto pb-20" // MODIFIÉ: hauteur explicite
                 style={{
                   msOverflowStyle: 'none',
                   scrollbarWidth: 'none'
                 }}
               >
-
+                
                 <InfiniteScroll
                   loadMore={loadMorePosts}
                   hasMore={hasMore}
                   isLoading={isLoading}
-                  initialLoad={false} // Modification critique #4: Désactiver le chargement auto
-                  threshold={500} // Modification #5: Augmenter le seuil pour réduire les vérifications
+                  initialLoad={false}
+                  threshold={300}
                   loader={
                     <div className="flex justify-center py-6">
                       <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
@@ -276,17 +280,14 @@ export default function Feed() {
                   }
                   className="space-y-4"
                 >
-                  {posts.map((post, index) => (
-                    <motion.div
-                      key={post.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.3,
-                        delay: Math.min(0.05 * index, 0.3) // Décalage progressif limité
-                      }}
-                    >
+                  {posts.length === 0 && !isLoading ? (
+                    <div className="text-center py-12 bg-white bg-opacity-20 backdrop-blur-sm rounded-xl">
+                      <p className="text-gray-600">Aucun post à afficher pour le moment.</p>
+                    </div>
+                  ) : (
+                    posts.map((post) => (
                       <PostCard
+                        key={post.id}
                         id={post.id}
                         user={post.user}
                         content={post.content}
@@ -297,8 +298,8 @@ export default function Feed() {
                         isRetweeted={post.isRetweeted}
                         isBookmarked={post.isBookmarked}
                       />
-                    </motion.div>
-                  ))}
+                    ))
+                  )}
                 </InfiniteScroll>
               </div>
             </div>

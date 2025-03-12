@@ -4,10 +4,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 /**
  * Récupère les posts paginés depuis l'API
  * @param page Numéro de la page
- * @param limit Nombre de posts par page
  * @returns Les données de l'API
  */
-export const getPosts = async (page: number = 1, limit: number = 5) => {
+export const getPosts = async (page: number = 1,) => {
   try {
     // Utilisation de js-cookie pour récupérer le token
     const token = Cookies.get('token');
@@ -18,7 +17,7 @@ export const getPosts = async (page: number = 1, limit: number = 5) => {
       };
     }
 
-    const response = await fetch(`${API_URL}/post/paginated?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_URL}/post/getAllPosts?page=${page}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
