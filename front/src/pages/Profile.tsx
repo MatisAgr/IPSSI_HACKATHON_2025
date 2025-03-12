@@ -104,7 +104,7 @@ export default function Profile() {
         followers: "0", // remplacer par les vraies données quand api dispo
         following: "0", // remplacer par les vraies données quand api dispo
         profileImage: userProfile.pdp || "https://randomuser.me/api/portraits/men/32.jpg",
-        bannerImage: userProfile.pdb || "",
+        coverImage: userProfile.pdb || "",
         joinDate: formatJoinDate(userProfile.createdAt),
         isPremium: userProfile.premium
     } : {
@@ -115,7 +115,7 @@ export default function Profile() {
         followers: '0',
         following: '0',
         profileImage: 'https://randomuser.me/api/portraits/men/32.jpg',
-        bannerImage: '',
+        coverImage: '',
         joinDate: ''
     };
 
