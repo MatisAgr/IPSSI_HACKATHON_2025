@@ -37,7 +37,7 @@ export const getRetweets = async (req: AuthRequest, res: Response): Promise<void
       .limit(limit)
       .populate({
         path: 'post_id',
-        select: 'author texte media tags isThread createdAt updatedAt',
+        select: 'author texte isThread createdAt',
         populate: {
           path: 'author',
           select: 'username hashtag pdp'
@@ -50,11 +50,8 @@ export const getRetweets = async (req: AuthRequest, res: Response): Promise<void
       return {
         author: post.author,
         texte: post.texte,
-        media: post.media,
-        tags: post.tags,
         isThread: post.isThread,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt
+        createdAt: post.createdAt
       };
     });
 
