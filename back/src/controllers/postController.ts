@@ -285,10 +285,13 @@ export const getMyPosts = async (req: AuthRequest, res: Response): Promise<void>
       .sort({ createdAt: -1 })
       .populate({
         path: 'author',
-        select: 'username hashtag pdp'
+        select: 'username hashtag pdp premium'
       })
       .select('_id texte createdAt media tags mentions');
+
     
+      console.log(posts);
+
     // Logging du résultat
     if (posts.length === 0) {
       console.log(`📭 Aucun post trouvé pour l'utilisateur ${req.user.username}`);
