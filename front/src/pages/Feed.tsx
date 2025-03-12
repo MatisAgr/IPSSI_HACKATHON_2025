@@ -14,7 +14,7 @@ import TrendingTopic from '../components/Feed/TrendingTopic';
 import UserSuggestion from '../components/Feed/UserSuggestion';
 import { LazyMotion, domAnimation } from 'framer-motion';
 
-// Données statiques pour les tendances
+// à faire en fonction des nombres de posts avec ce tag
 const trendingTopics = [
   { topic: "#IntelligenceArtificielle", posts: "2 325", category: "Technologie" },
   { topic: "#DéveloppementWeb", posts: "1 456", category: "Programmation" },
@@ -23,7 +23,7 @@ const trendingTopics = [
   { topic: "#ReactJS", posts: "684", category: "JavaScript" }
 ];
 
-// Données statiques pour les suggestions d'utilisateurs
+// à faire en fonction des gens qui ont le même centre d'intérêt
 const userSuggestions = [
   { name: "Laura Martin", username: "laura_dev", avatar: "https://randomuser.me/api/portraits/women/12.jpg" },
   { name: "Thomas Durand", username: "thomasd_tech", avatar: "https://randomuser.me/api/portraits/men/32.jpg" },
@@ -103,6 +103,8 @@ export default function Feed() {
       console.log(`🔄 Chargement des posts - page ${page}`);
       
       const response = await getPosts(page, 5);
+
+      console.log(response);
       
       if (!response.success) {
         console.error('❌ Erreur lors du chargement des posts:', response.message);
@@ -285,6 +287,7 @@ export default function Feed() {
                       }}
                     >
                       <PostCard
+                        id={post.id}
                         user={post.user}
                         content={post.content}
                         image={post.image}
