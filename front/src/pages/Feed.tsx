@@ -186,7 +186,7 @@ export default function Feed() {
             {/* Sidebar gauche - masquée sur mobile */}
             <div className="hidden md:block md:col-span-1 lg:col-span-2 h-full pb-6">
               {/* Conteneur sticky unique qui contient les deux sections */}
-              <div className="sticky top-24 space-y-6 overflow-y-auto max-h-[calc(100vh-120px)] hide-scrollbar">
+              <div className="sticky top-24 space-y-6 max-h-[calc(100vh-120px)] hide-scrollbar">
                 {/* Explorer section - sans sticky individuel */}
                 <motion.div
                   className="bg-white bg-opacity-20 backdrop-blur-lg p-4 rounded-2xl border border-white border-opacity-20 shadow-lg"
@@ -251,15 +251,11 @@ export default function Feed() {
             </div>
             
             {/* Flux principal - uniquement scrollable */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 h-full pt-4">
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 h-full pt-4 ">
               <h1 className="sr-only">Flux d'actualités</h1>
             
               <div
-                className="h-[calc(100vh-80px)] overflow-auto pb-20" // MODIFIÉ: hauteur explicite
-                style={{
-                  msOverflowStyle: 'none',
-                  scrollbarWidth: 'none'
-                }}
+                className="h-[calc(100vh)] overflow-auto pb-20"
               >
                 
                 <InfiniteScroll
