@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
-import User from '../models/userModel';
+import User, { IUser } from '../models/userModel';
 import Follow from '../models/followModel';
 import mongoose from 'mongoose';
+import { sendNotification } from '../services/notificationService';
+
+// Interface pour étendre Request avec l'utilisateur
+interface AuthRequest extends Request {
+  user?: IUser;
+}
 
 /**
  * Follow a user
@@ -49,6 +55,14 @@ export const followUser = async (req: Request, res: Response) => {
 
     await newFollow.save();
 
+    // Envoyer une notification à l'utilisateur qui est suivi
+    await sendNotification(
+      followingId,  // Destinataire de la notification
+      'follow',     // Type de notification
+      undefined,    // Pas de postId pour un follow
+      followerId    // L'utilisateur qui a effectué l'action
+    );
+
     res.status(201).json({ 
       success: true, 
       message: 'Utilisateur suivi avec succès',
@@ -69,7 +83,6 @@ export const followUser = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
-
 /**
  * Unfollow a user
  * @route DELETE /api/follow/:id
@@ -260,4 +273,51 @@ export const getFollowCount = async (req: Request, res: Response) => {
     console.error('Erreur lors de la récupération des compteurs de follow:', error);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
+};
+
+/**
+ * Get current user's follow count
+ * @route GET /api/follow/me/count
+ * @desc Get follower and following count for the authenticated user
+ * @access Private
+ */
+export const getMyFollowCount = async (req: AuthRequest, res: Response) => {
+  try {
+    // Vérifier si l'utilisateur est connecté
+    if (!req.user) {
+      console.log(`🔒 Accès refusé: utilisateur non authentifié`);
+      res.status(401).json({
+        success: false,
+        message: "Non autorisé, veuillez vous connecter"
+      });
+      return;
+    }
+
+    const userId = req.user._id;
+    console.log(`👤 Récupération des compteurs de follow pour l'utilisateur connecté (ID: ${userId})`);
+
+    // Compter les followers (abonnés)
+    const followersCount = await Follow.countDocuments({ following: userId });
+    
+    // Compter les following (abonnements)
+    const followingCount = await Follow.countDocuments({ follower: userId });
+
+    console.log(`✅ Compteurs récupérés pour l'utilisateur ${req.user.username}: ${followersCount} followers, ${followingCount} following`);
+
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        followers: followersCount,
+        following: followingCount
+      }
+    });
+  } catch (error) {
+    console.error(`💥 Erreur lors de la récupération des compteurs de follow: ${(error as Error).message}`);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur lors de la récupération des compteurs de follow',
+      error: (error as Error).message
+    });
+  }
+  console.log('----------------------------------');
 };

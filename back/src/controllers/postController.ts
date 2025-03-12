@@ -253,6 +253,74 @@ export const getUserPosts = async (req: AuthRequest, res: Response): Promise<voi
 };
 
 /**
+ * Récupère les posts de l'utilisateur connecté
+ * @route GET /api/post/myposts
+ * @access Private - Requiert authentification
+ */
+export const getMyPosts = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    // Vérifier si l'utilisateur est connecté - le middleware devrait déjà avoir vérifié,
+    // mais c'est une bonne pratique de double-vérifier
+    if (!req.user) {
+      console.log(`🔒 Accès refusé: utilisateur non authentifié`);
+      res.status(401).json({
+        success: false,
+        message: "Non autorisé, veuillez vous connecter"
+      });
+      return;
+    }
+
+    const userId = req.user._id;
+    console.log(`👤 Récupération des posts de l'utilisateur connecté (ID: ${userId})`);
+
+    // Récupérer les posts de l'utilisateur connecté
+    const posts = await Post.find({ author: userId })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'author',
+        select: 'username hashtag pdp'
+      })
+      .select('_id texte createdAt media tags mentions');
+    
+    // Logging du résultat
+    if (posts.length === 0) {
+      console.log(`📭 Aucun post trouvé pour l'utilisateur ${req.user.username}`);
+      res.status(200).json({
+        success: true,
+        message: "Vous n'avez pas encore publié de posts",
+        data: []
+      });
+      return;
+    }
+
+    console.log(`📊 ${posts.length} posts récupérés pour l'utilisateur ${req.user.username}`);
+    
+    // Retourner les posts avec succès
+    res.status(200).json({
+      success: true,
+      count: posts.length,
+      data: posts.map(post => ({
+        id: post._id,
+        texte: post.texte,
+        author: post.author,
+        createdAt: post.createdAt,
+        media: post.media,
+        tags: post.tags
+      }))
+    });
+    
+  } catch (error) {
+    console.error(`💥 Erreur lors de la récupération des posts: ${(error as Error).message}`);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la récupération des posts",
+      error: (error as Error).message
+    });
+  }
+  console.log('----------------------------------');
+};
+
+/**
  * Récupère les posts avec un tag spécifique
  * @route GET /api/post/tag/:tag
  * @access Private - Requiert authentification

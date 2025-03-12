@@ -5,8 +5,13 @@ import {
   getUserFollowers, 
   getUserFollowing,
   checkFollowStatus,
-  getFollowCount
+  getFollowCount,
+  getMyFollowCount
 } from '../controllers/followController';
+
+import { getMyProfile, getUserById, searchUsers, updateMyProfile } from '../controllers/userController';
+
+
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -18,5 +23,11 @@ router.get('/followers/:userId', protect , getUserFollowers);
 router.get('/following/:userId', protect ,getUserFollowing);
 router.get('/follow/check', protect ,checkFollowStatus);
 router.get('/follow/count/:userId', protect , getFollowCount);
+router.get('/follow/me/count', protect, getMyFollowCount);
+
+router.get('/me', protect, getMyProfile);
+router.get('/search', protect, searchUsers);
+router.get('/:userId', protect, getUserById);
+router.put('/me', protect, updateMyProfile);
 
 export default router;

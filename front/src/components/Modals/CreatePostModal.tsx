@@ -8,7 +8,7 @@ import { createPost, CreatePostData } from '../../callApi/CallApi_CreatePost';
 interface CreatePostModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit?: (postData: { content: string }) => void;
+    // onSubmit?: (postData: { content: string }) => void;
     user: {
         name: string;
         username: string;
@@ -22,7 +22,7 @@ const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5
 export default function CreatePostModal({
     isOpen,
     onClose,
-    onSubmit,
+    // onSubmit,
     user = {
         name: 'Utilisateur',
         username: 'utilisateur',
@@ -125,7 +125,7 @@ export default function CreatePostModal({
                     // Après l'animation, fermer le modal et réinitialiser
                     setTimeout(() => {
                         // Notifier le composant parent que le post a été créé
-                        onSubmit?.({ content });
+                        // onSubmit?.({ content });
 
                         // Réinitialiser et fermer
                         setContent('');

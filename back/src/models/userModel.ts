@@ -50,7 +50,8 @@ const UserSchema = new Schema({
 
     premium:{
         type: Boolean,
-        required: true     
+        required: true,
+        default: false
     },
 
     password: {
