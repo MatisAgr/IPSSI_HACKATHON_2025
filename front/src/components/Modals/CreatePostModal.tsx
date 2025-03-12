@@ -8,7 +8,7 @@ import { createPost, CreatePostData } from '../../callApi/CallApi_CreatePost';
 interface CreatePostModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit?: (postData: { content: string; images: string[] }) => void;
+    onSubmit?: (postData: { content: string }) => void;
     user: {
         name: string;
         username: string;
@@ -31,7 +31,6 @@ export default function CreatePostModal({
     }
 }: CreatePostModalProps) {
     const [content, setContent] = useState('');
-    const [images, setImages] = useState<string[]>([]);
     const [isFocused, setIsFocused] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -114,8 +113,6 @@ export default function CreatePostModal({
                 // Préparer les données pour l'API
                 const postData: CreatePostData = {
                     content: content.trim(),
-                    // Si vous avez des images, ajouter la première comme URL média
-                    mediaUrl: images.length > 0 ? images[0] : undefined,
                 };
 
                 // Appel à l'API
@@ -128,11 +125,10 @@ export default function CreatePostModal({
                     // Après l'animation, fermer le modal et réinitialiser
                     setTimeout(() => {
                         // Notifier le composant parent que le post a été créé
-                        onSubmit?.({ content, images });
+                        onSubmit?.({ content });
 
                         // Réinitialiser et fermer
                         setContent('');
-                        setImages([]);
                         handleClose();
                     }, 1500);
                 } else {

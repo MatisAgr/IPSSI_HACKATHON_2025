@@ -3,7 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Interface simplifiée pour définir la structure des données d'un post
 export interface CreatePostData {
-  texte: string;
+  content: string;
 }
 
 // Interface pour la réponse de l'API
