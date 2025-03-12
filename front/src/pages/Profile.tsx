@@ -5,6 +5,7 @@ import CreatePostButton from '../components/Buttons/CreatePostButton';
 import { UserCard } from '../components/Cards/UserCard';
 import { ProfileSidebar } from '../components/Menu/ProfileSidebar';
 import PostCard from '../components/Cards/PostCard';
+import UpdateUserModal from '../components/Modals/UpdateUserModal';
 import { getMyPosts, PostData } from '../callApi/CallApi_GetMyPosts';
 import { getMyProfile, UserProfileData } from '../callApi/CallApi_GetMyProfile';
 
@@ -13,11 +14,13 @@ export default function Profile() {
     const [userPosts, setUserPosts] = useState<PostData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Nouvel état pour les données de profil
     const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [profileError, setProfileError] = useState<string | null>(null);
+
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
     // Fonction pour formater les timestamps
     const formatTimestamp = (date: Date): string => {
@@ -54,7 +57,7 @@ export default function Profile() {
 
             try {
                 const response = await getMyProfile();
-                
+
                 if (response.success && response.data) {
                     setUserProfile(response.data);
                 } else {
@@ -95,6 +98,10 @@ export default function Profile() {
 
         loadPosts();
     }, []);
+
+    const handleProfileUpdate = (updatedData: Partial<UserProfileData>) => {
+        setUserProfile(prev => prev ? { ...prev, ...updatedData } : null);
+    };
 
     // Adapte les données du profil pour le composant UserCard
     const userCardData = userProfile ? {
@@ -159,9 +166,12 @@ export default function Profile() {
                         </button>
                     </div>
                 ) : (
-                    <UserCard user={userCardData} />
+                    <UserCard 
+                    user={userCardData}
+                    onSettingsClick={() => setIsUpdateModalOpen(true)}
+                    />
                 )}
-                
+
                 <div className="flex flex-col md:flex-row">
                     <div className="w-full md:w-64 p-4">
                         <ProfileSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -250,6 +260,13 @@ export default function Profile() {
                         </AnimatePresence>
                     </div>
                 </div>
+
+                <UpdateUserModal
+                    isOpen={isUpdateModalOpen}
+                    onClose={() => setIsUpdateModalOpen(false)}
+                    onUpdate={handleProfileUpdate}
+                    userData={userProfile}
+                />
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiSave, FiUser, FiImage, FiAlertCircle, FiCheckCircle, FiTag, FiEdit } from "react-icons/fi";
+import { FiX, FiSave, FiUser, FiImage, FiAlertCircle, FiCheckCircle, FiEdit } from "react-icons/fi";
+import { FaCheck } from "react-icons/fa";
 import { updateProfile, UserProfileData } from "../../callApi/CallApi_GetMyProfile";
 import FadeIn from "../Animations/FadeIn";
 
@@ -13,11 +14,11 @@ interface UpdateUserModalProps {
 
 const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModalProps) => {
   // États pour les champs modifiables
+  const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [pdpUrl, setPdpUrl] = useState("");
   const [pdbUrl, setPdbUrl] = useState("");
-  const [interests, setInterests] = useState<string[]>([]);
-  const [currentInterest, setCurrentInterest] = useState("");
+  const [isPremium, setIsPremium] = useState(false);
 
   // États pour le formulaire
   const [loading, setLoading] = useState(false);
@@ -29,10 +30,11 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
   // Initialiser les champs avec les données utilisateur actuelles
   useEffect(() => {
     if (userData) {
+      setUsername(userData.username || "");
       setBio(userData.bio || "");
       setPdpUrl(userData.pdp || "");
       setPdbUrl(userData.pdb || "");
-      setInterests(userData.interests || []);
+      setIsPremium(userData.premium || false);
       setPreviewPdp(userData.pdp || "");
       setPreviewPdb(userData.pdb || "");
     }
@@ -48,19 +50,6 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
-
-  // Gérer l'ajout d'un intérêt
-  const handleAddInterest = () => {
-    if (currentInterest.trim() && !interests.includes(currentInterest.trim())) {
-      setInterests([...interests, currentInterest.trim()]);
-      setCurrentInterest("");
-    }
-  };
-
-  // Gérer la suppression d'un intérêt
-  const handleRemoveInterest = (interestToRemove: string) => {
-    setInterests(interests.filter(interest => interest !== interestToRemove));
-  };
 
   // Gérer l'aperçu de la photo de profil
   const handlePdpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,11 +68,12 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
   // Fermer le modal avec confirmation si des modifications ont été effectuées
   const handleClose = () => {
     if (loading) return;
-    const hasChanges = 
+    const hasChanges =
+      username !== (userData?.username || "") ||
       bio !== (userData?.bio || "") ||
       pdpUrl !== (userData?.pdp || "") ||
       pdbUrl !== (userData?.pdb || "") ||
-      JSON.stringify(interests) !== JSON.stringify(userData?.interests || []);
+      isPremium !== (userData?.premium || false);
 
     if (hasChanges && !success) {
       if (confirm("Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter?")) {
@@ -103,12 +93,13 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
     try {
       // Préparer les données à mettre à jour
       const updateData: Partial<UserProfileData> = {};
-      
+
+      if (username !== (userData?.username || "")) updateData.username = username;
       if (bio !== (userData?.bio || "")) updateData.bio = bio;
       if (pdpUrl !== (userData?.pdp || "")) updateData.pdp = pdpUrl;
       if (pdbUrl !== (userData?.pdb || "")) updateData.pdb = pdbUrl;
-      if (JSON.stringify(interests) !== JSON.stringify(userData?.interests || [])) updateData.interests = interests;
-      
+      if (isPremium !== (userData?.premium || false)) updateData.premium = isPremium;
+
       // Si aucune modification n'a été faite
       if (Object.keys(updateData).length === 0) {
         setError("Aucune modification n'a été effectuée");
@@ -144,7 +135,7 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
         handleClose();
       }
     };
-    
+
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose, loading]);
@@ -167,7 +158,7 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
           className="fixed inset-0 z-50"
         >
           {/* Fond assombri */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -176,11 +167,11 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
             className="fixed inset-0 backdrop-blur-sm"
             onClick={handleOverlayClick}
           />
-          
+
           {/* Contenu du modal */}
           <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-            <FadeIn 
-              direction="down" 
+            <FadeIn
+              direction="down"
               className="bg-white rounded-2xl shadow-xl w-full max-w-4xl pointer-events-auto border border-gray-200"
               duration={0.3}
               delay={0.1}
@@ -190,8 +181,8 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                   <FiEdit className="mr-2 text-blue-600" />
                   Modifier mon profil
                 </h3>
-                <button 
-                  onClick={handleClose} 
+                <button
+                  onClick={handleClose}
                   className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
                   disabled={loading}
                 >
@@ -202,7 +193,7 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
               <div className="p-6">
                 <AnimatePresence mode="wait">
                   {success ? (
-                    <motion.div 
+                    <motion.div
                       key="success"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -231,11 +222,26 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                           <span>{error}</span>
                         </div>
                       )}
-                      
+
                       <div className="grid md:grid-cols-2 gap-8">
                         {/* Section formulaire */}
                         <div>
                           <form onSubmit={handleSubmit}>
+                            {/* Nom d'utilisateur */}
+                            <div className="mb-4">
+                              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                                Nom d'utilisateur
+                              </label>
+                              <input
+                                id="username"
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Votre nom d'utilisateur"
+                              />
+                            </div>
+
                             {/* Biographie */}
                             <div className="mb-4">
                               <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
@@ -287,42 +293,28 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                               />
                             </div>
 
-                            {/* Centres d'intérêts */}
-                            <div className="mb-4">
-                              <label htmlFor="interests" className="block text-sm font-medium text-gray-700 mb-1">
-                                Centres d'intérêt
-                              </label>
-                              <div className="flex">
-                                <input
-                                  id="interests"
-                                  type="text"
-                                  value={currentInterest}
-                                  onChange={(e) => setCurrentInterest(e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder="Ajoutez un centre d'intérêt"
-                                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddInterest())}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={handleAddInterest}
-                                  className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700"
-                                >
-                                  <FiTag />
-                                </button>
+                            {/* Toggle Premium (pour développement) */}
+                            <div className="mb-4 mt-6">
+                              <div className="flex items-center justify-between">
+                                <label htmlFor="premium" className="block text-sm font-medium text-gray-700">
+                                  Statut Premium
+                                </label>
+                                <div className="ml-2 text-xs text-gray-500">Mode développement</div>
                               </div>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {interests.map((interest, index) => (
-                                  <div key={index} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm flex items-center">
-                                    {interest}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRemoveInterest(interest)}
-                                      className="ml-2 text-blue-500 hover:text-blue-700"
-                                    >
-                                      <FiX size={14} />
-                                    </button>
-                                  </div>
-                                ))}
+                              <div className="mt-2 flex items-center">
+                                <label className="inline-flex relative items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    id="premium"
+                                    className="sr-only peer"
+                                    checked={isPremium}
+                                    onChange={() => setIsPremium(!isPremium)}
+                                  />
+                                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                  <span className="ml-3 text-sm font-medium text-gray-700">
+                                    {isPremium ? "Activé" : "Désactivé"}
+                                  </span>
+                                </label>
                               </div>
                             </div>
 
@@ -331,13 +323,7 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                               <h4 className="text-sm font-medium text-gray-500 mb-2">Informations non modifiables</h4>
                               <div className="bg-gray-50 p-4 rounded-lg">
                                 <p className="text-sm text-gray-600 mb-1">
-                                  <strong>Nom d'utilisateur:</strong> {userData?.username}
-                                </p>
-                                <p className="text-sm text-gray-600 mb-1">
-                                  <strong>Hashtag:</strong> {userData?.hashtag}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  <strong>Statut premium:</strong> {userData?.premium ? "Activé" : "Non activé"}
+                                  <strong>Hashtag:</strong> @{userData?.hashtag}
                                 </p>
                               </div>
                             </div>
@@ -355,9 +341,8 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                               <button
                                 type="submit"
                                 disabled={loading}
-                                className={`px-4 py-2 bg-blue-600 text-white rounded-lg transition-colors flex items-center ${
-                                  loading ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
-                                }`}
+                                className={`px-4 py-2 bg-blue-600 text-white rounded-lg transition-colors flex items-center ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
+                                  }`}
                               >
                                 {loading ? (
                                   <>
@@ -381,13 +366,13 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                         {/* Section aperçu */}
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                           <h4 className="text-sm font-medium text-gray-700 mb-4">Aperçu</h4>
-                          
+
                           {/* Aperçu de la bannière */}
                           <div className="h-32 w-full rounded-t-lg overflow-hidden bg-gray-300 relative">
                             {previewPdb ? (
-                              <img 
-                                src={previewPdb} 
-                                alt="Bannière" 
+                              <img
+                                src={previewPdb}
+                                alt="Bannière"
                                 className="w-full h-full object-cover"
                                 onError={() => setPreviewPdb("")}
                               />
@@ -397,16 +382,16 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Aperçu de la photo de profil et des infos */}
                           <div className="bg-white rounded-b-lg shadow p-4">
                             <div className="flex items-start">
                               <div className="relative -mt-12 mr-4">
                                 <div className="h-20 w-20 rounded-full border-4 border-white overflow-hidden bg-gray-200">
                                   {previewPdp ? (
-                                    <img 
-                                      src={previewPdp} 
-                                      alt="Photo de profil" 
+                                    <img
+                                      src={previewPdp}
+                                      alt="Photo de profil"
                                       className="w-full h-full object-cover"
                                       onError={() => setPreviewPdp("")}
                                     />
@@ -419,35 +404,22 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
                               </div>
                               <div className="pt-2">
                                 <div className="flex items-center">
-                                  <h3 className="text-lg font-bold text-gray-800">{userData?.username}</h3>
-                                  {userData?.premium && (
-                                    <span className="ml-1 text-blue-500 bg-blue-100 p-1 rounded-full">
-                                      <FiCheckCircle size={14} />
-                                    </span>
+                                  <h3 className="text-lg font-bold text-gray-800">{username || userData?.username}</h3>
+                                  {isPremium && (
+                                    <div className="text-blue-500 bg-blue-100 p-1 rounded-full">
+                                      <FaCheck className="h-3 w-3" />
+                                    </div>
                                   )}
                                 </div>
                                 <p className="text-gray-500 text-sm">@{userData?.hashtag}</p>
                               </div>
                             </div>
 
-                            {/* Bio et intérêts */}
+                            {/* Bio */}
                             <div className="mt-4">
                               <p className="text-gray-800">
                                 {bio || "Aucune biographie"}
                               </p>
-                              
-                              {interests.length > 0 && (
-                                <div className="mt-3">
-                                  <p className="text-sm font-medium text-gray-700 mb-1">Centres d'intérêt</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {interests.map((interest, idx) => (
-                                      <span key={idx} className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-                                        {interest}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>
