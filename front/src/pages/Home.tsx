@@ -76,7 +76,7 @@ const Home: React.FC = () => {
             transition: {
                 duration: 1.5,
                 repeat: Infinity,
-                repeatType: "reverse"
+                repeatType: "reverse" as const
             }
         }
     };
@@ -91,7 +91,7 @@ const Home: React.FC = () => {
             transition: {
                 duration: 2,
                 repeat: Infinity,
-                repeatType: "reverse",
+                repeatType: "reverse" as const,
                 ease: "easeInOut"
             }
         }
