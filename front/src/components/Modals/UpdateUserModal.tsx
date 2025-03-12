@@ -2,7 +2,8 @@ import { useState, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiX, FiSave, FiUser, FiImage, FiAlertCircle, FiCheckCircle, FiEdit } from "react-icons/fi";
 import { FaCheck } from "react-icons/fa";
-import { updateProfile, UserProfileData } from "../../callApi/CallApi_GetMyProfile";
+import { UserProfileData } from "../../callApi/CallApi_GetMyProfile";
+import { updateUserProfile } from "../../callApi/CallApi_UpdateMyProfile";
 import FadeIn from "../Animations/FadeIn";
 
 interface UpdateUserModalProps {
@@ -107,8 +108,8 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
         return;
       }
 
-      // Appel à l'API
-      const response = await updateProfile(updateData);
+      // Appel à la nouvelle API
+      const response = await updateUserProfile(updateData);
 
       if (response.success) {
         setSuccess(true);
@@ -127,6 +128,7 @@ const UpdateUserModal = ({ isOpen, onClose, onUpdate, userData }: UpdateUserModa
       setLoading(false);
     }
   };
+
 
   // Fermer le modal avec la touche Echap
   useEffect(() => {
