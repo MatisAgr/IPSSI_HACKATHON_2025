@@ -6,8 +6,10 @@ import { UserCard } from '../components/Cards/UserCard';
 import { ProfileSidebar } from '../components/Menu/ProfileSidebar';
 import PostCard from '../components/Cards/PostCard';
 import UpdateUserModal from '../components/Modals/UpdateUserModal';
+
 import { getMyPosts, PostData } from '../callApi/CallApi_GetMyPosts';
 import { getMyProfile, UserProfileData } from '../callApi/CallApi_GetMyProfile';
+import { getMyFollowCount, FollowCountResponse } from '../callApi/CallApi_CountMyFollow';
 
 export default function Profile() {
     const [activeTab, setActiveTab] = useState('posts');
@@ -19,7 +21,7 @@ export default function Profile() {
     const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [profileError, setProfileError] = useState<string | null>(null);
-
+    const [followCounts, setFollowCounts] = useState({ followers: '0', following: '0' });
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
     // Fonction pour formater les timestamps
@@ -57,13 +59,27 @@ export default function Profile() {
 
             try {
                 const response = await getMyProfile();
+                const followResponse = await getMyFollowCount();
 
+                // verif profile api
                 if (response.success && response.data) {
                     setUserProfile(response.data);
                     console.log(response.data);
                 } else {
                     setProfileError(response.message || "Impossible de charger votre profil");
                 }
+
+                // verif follow api
+                if (followResponse.success && followResponse.data) {
+                    setFollowCounts({
+                        followers: followResponse.data.followers.toString(),
+                        following: followResponse.data.following.toString()
+                    });
+                    console.log("Compteurs de follow récupérés:", followResponse.data);
+                } else {
+                    console.error("Erreur lors de la récupération des compteurs de follow:", followResponse.message);
+                }
+
             } catch (err) {
                 setProfileError("Une erreur est survenue lors du chargement de votre profil");
                 console.error("Erreur lors du chargement du profil:", err);
@@ -108,8 +124,8 @@ export default function Profile() {
         name: userProfile.username,
         username: "@" + userProfile.hashtag,
         bio: userProfile.bio || "Aucune biographie",
-        followers: "0", // remplacer par les vraies données quand api dispo
-        following: "0", // remplacer par les vraies données quand api dispo
+        followers: followCounts.followers || 'n/a',
+        following: followCounts.following || 'n/a',   
         profileImage: userProfile.pdp || "",
         coverImage: userProfile.pdb || "",
         joinDate: formatJoinDate(userProfile.createdAt),
