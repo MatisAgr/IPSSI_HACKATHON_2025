@@ -1,12 +1,11 @@
 import React from 'react';
-import { FaCalendarAlt, FaUserFriends, FaUsers, FaCheck, FaEnvelope, FaBell } from 'react-icons/fa';
+import { FaCog, FaEnvelope, FaBell } from 'react-icons/fa';
 
 import ProfileBanner from '../ProfileBanner';
 import UserPicture from '../UserCardsItems/UserPicture';
 import UserFeatures from '../UserCardsItems/UserFeatures';
 import UserActions from '../UserCardsItems/UserActions';
 
-import IconButtonSettings from '../Buttons/IconSettingsButton';
 import IconButton from '../Buttons/IconButton';
 import FollowButton from '../Buttons/FollowButton';
 
@@ -65,23 +64,26 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
         <UserActions>
           {isAuthenticated ? (
             <>
-              <IconButton 
-                icon={<FaBell className="h-5 w-5" />} 
-                onClick={() => alert("Notifications à compléter ")} 
+              <IconButton
+                icon={<FaBell className="h-5 w-5" />}
+                onClick={() => alert("Notifications à compléter ")}
               />
-              <IconButtonSettings onClick={() => alert("Paramètres à compléter")} />
+              <IconButton
+                icon={<FaCog className="h-5 w-5" />}
+                onClick={() => alert("Paramètres à compléter")}
+              />
             </>
           ) : (
             <>
               <FollowButton />
-              <IconButton 
-                icon={<FaEnvelope className="h-5 w-5" />} 
-                onClick={() => alert("Message à compléter")} 
+              <IconButton
+                icon={<FaEnvelope className="h-5 w-5" />}
+                onClick={() => alert("Message à compléter")}
               />
             </>
           )}
         </UserActions>
-        
+
 
       </div>
     </div>
