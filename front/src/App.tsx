@@ -21,6 +21,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 
 import Page404 from "./pages/Page404";
+import Admin from "./pages/Admin";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,6 +52,8 @@ export default function App() {
                 <Feed />
               </ProtectedRoute>
             } />
+
+            <Route path="/admin" element={<Admin />} />
 
             <Route path="*" element={<Page404 />} />
 
