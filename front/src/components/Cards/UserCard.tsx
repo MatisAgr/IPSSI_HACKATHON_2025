@@ -6,9 +6,9 @@ import UserPicture from '../UserCardsItems/UserPicture';
 import UserFeatures from '../UserCardsItems/UserFeatures';
 import UserActions from '../UserCardsItems/UserActions';
 
-import IconButtonSettings from '../IconSettingsButton';
-import IconButton from '../IconButton';
-import FollowButton from '../FollowButton';
+import IconButtonSettings from '../Buttons/IconSettingsButton';
+import IconButton from '../Buttons/IconButton';
+import FollowButton from '../Buttons/FollowButton';
 
 
 
