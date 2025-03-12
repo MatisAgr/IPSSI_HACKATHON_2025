@@ -26,6 +26,7 @@ const Navbar: React.FC = () => {
                     <NavItem to="/register" icon={<FiUser />} label="Inscription" />
                     <NavItem to="/login" icon={<FiLogIn />} label="Connexion" />
                     <NavItem to="/logout" icon={<FiLogOut />} label="Déconnexion" />
+                    <NavItem to="/profile" icon={<FiUser />} label="Profil" />
                     {/* <NavItem to="/followers" icon={<FiUsers />} label="Followers" /> */}
                     {/* <NavItem to="/post_saved" icon={<FiBookmark />} label="Posts enregistrés" /> */}
                 </ul>
