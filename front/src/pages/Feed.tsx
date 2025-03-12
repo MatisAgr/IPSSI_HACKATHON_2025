@@ -48,7 +48,7 @@ export default function Feed() {
   const [currentUser, setCurrentUser] = useState({
     name: "Chargement...",
     username: "utilisateur",
-    profileImage: "https://randomuser.me/api/portraits/lego/1.jpg", // Image par défaut
+    profileImage: "", // Image par défaut
     verified: false
   });
   
@@ -236,7 +236,7 @@ export default function Feed() {
           </div>
 
           {/* Flux principal - uniquement scrollable */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-3 h-full">
+          <div className="col-span-1 md:col-span-2 lg:col-span-3 h-full pt-4">
             <h1 className="sr-only">Flux d'actualités</h1>
 
             <motion.div
