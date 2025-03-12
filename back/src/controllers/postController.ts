@@ -252,6 +252,8 @@ export const getUserPosts = async (req: AuthRequest, res: Response): Promise<voi
   }
 };
 
+// ----------
+
 /**
  * Récupère les posts de l'utilisateur connecté
  * @route GET /api/post/myposts
@@ -352,3 +354,5 @@ export const getPostsByTag = async (req: AuthRequest, res: Response): Promise<vo
     });
   }
 };
+
+// export const getPostsPaginated = async (req: AuthRequest, res: Response): Promise<void> => {

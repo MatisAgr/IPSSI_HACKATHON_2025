@@ -3,12 +3,12 @@ import { motion } from 'framer-motion';
 import {
   FiArrowRight, FiTrendingUp, FiBell,
   FiMessageSquare, FiBookmark, FiSearch,
-  FiHeart, FiRepeat, FiMessageCircle, FiShare2,
   FiUsers
 } from 'react-icons/fi';
 import InfiniteScroll from '../utils/InfiniteScroll';
 import PostCard from '../components/Cards/PostCard';
 import CreatePostButton from '../components/Buttons/CreatePostButton';
+import { getMyProfile, UserProfileData } from '../callApi/CallApi_GetMyProfile';
 
 // Composant TrendingTopic pour la sidebar
 const TrendingTopic = ({ topic, posts, category }: any) => (
@@ -43,6 +43,17 @@ export default function Feed() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // État pour l'utilisateur connecté
+  const [currentUser, setCurrentUser] = useState({
+    name: "Chargement...",
+    username: "utilisateur",
+    profileImage: "https://randomuser.me/api/portraits/lego/1.jpg", // Image par défaut
+    verified: false
+  });
+  
+  // État pour suivre le statut de chargement du profil
+  const [profileLoading, setProfileLoading] = useState(true);
 
   // Fonction pour formater le temps écoulé
   const formatTimeAgo = (date: Date) => {
@@ -58,13 +69,33 @@ export default function Feed() {
     return date.toLocaleDateString();
   };
 
-  // Données d'exemple pour l'utilisateur connecté
-  const currentUser = {
-    name: "Marie Dupont",
-    username: "marie_d",
-    profileImage: "https://randomuser.me/api/portraits/women/23.jpg",
-    verified: true
+  // Fonction pour charger le profil utilisateur
+  const loadUserProfile = async () => {
+    try {
+      const response = await getMyProfile();
+      
+      if (response.success && response.data) {
+        const userData = response.data;
+        setCurrentUser({
+          name: userData.username, // On utilise le nom d'utilisateur comme nom
+          username: userData.hashtag, // Le hashtag comme identifiant
+          profileImage: userData.pdp || "https://randomuser.me/api/portraits/lego/1.jpg", // Utiliser pdp ou image par défaut
+          verified: userData.premium // Les utilisateurs premium sont vérifiés
+        });
+      } else {
+        console.warn("Impossible de récupérer le profil utilisateur:", response.message);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du profil:", error);
+    } finally {
+      setProfileLoading(false);
+    }
   };
+
+  // Charger le profil utilisateur au montage du composant
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
 
   // Fonction pour charger plus de posts
   const loadMorePosts = async () => {
@@ -311,8 +342,8 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* Bouton de création de post */}
-      <CreatePostButton user={currentUser} />
+      {/* Bouton de création de post avec le profil réel de l'utilisateur */}
+      {!profileLoading && <CreatePostButton user={currentUser} />}
     </div>
   );
 }
