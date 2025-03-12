@@ -1,2 +1,2 @@
-const APP_NAME = 'NOM DE L\'APP';
+const APP_NAME = 'XMotion';
 export default APP_NAME;

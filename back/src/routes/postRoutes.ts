@@ -13,7 +13,7 @@ const router = express.Router();
 router.get("/getpost", protect, getRecentPosts);
 
 // Route pour créer un nouveau post - protégée par authentification
-router.post("/", protect, createPost);
+router.post("/create", protect, createPost);
 
 // Routes additionnelles
 router.get("/user/:userId", protect, getUserPosts);
