@@ -166,9 +166,9 @@ export default function Profile() {
                         </button>
                     </div>
                 ) : (
-                    <UserCard 
-                    user={userCardData}
-                    onSettingsClick={() => setIsUpdateModalOpen(true)}
+                    <UserCard
+                        user={userCardData}
+                        onSettingsClick={() => setIsUpdateModalOpen(true)}
                     />
                 )}
 
@@ -235,25 +235,25 @@ export default function Profile() {
 
                                 {activeTab === 'replies' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des réponses dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
 
                                 {activeTab === 'retweets' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des retweets dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
 
                                 {activeTab === 'likes' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des likes dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
 
                                 {activeTab === 'bookmarks' && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>Affichage des signets dans une bulle grise.</p>
+                                        <p>En cours de dev...</p>
                                     </div>
                                 )}
                             </motion.div>
