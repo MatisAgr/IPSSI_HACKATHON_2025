@@ -1,15 +1,16 @@
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import React, { useState, useEffect, useRef, ReactNode } from 'react';
 
 interface InfiniteScrollProps {
-  children: ReactNode;      // contenu du scroll
-  loadMore: () => void;     // fonction pour charger plus de contenu
-  hasMore: boolean;         // indique s'il y a plus de contenu à charger
-  isLoading?: boolean;      // indique si un chargement est en cours
-  loader?: ReactNode;       // elt React à afficher pendant le chargement
-  endMessage?: ReactNode;   // message à afficher quand il n'y a plus de contenu à charger
-  threshold?: number;       // pixels avant la fin du scroll pour déclencher le chargement
-  className?: string;       // class CSS (ou tailwind) à appliquer au conteneur
-  height?: string | number; // hauteur maximale du conteneur (par défaut 100%)
+  children: ReactNode;
+  loadMore: () => void;
+  hasMore: boolean;
+  isLoading?: boolean;
+  loader?: ReactNode;
+  endMessage?: ReactNode;
+  threshold?: number;
+  className?: string;
+  height?: string | number;
+  initialLoad?: boolean;
 }
 
 const InfiniteScroll = ({
@@ -21,24 +22,37 @@ const InfiniteScroll = ({
   endMessage = <div className="py-4 text-center text-gray-500">Plus de contenu à charger</div>,
   threshold = 300,
   className = '',
-  height = '100%'
+  height = '100%',
+  initialLoad = true
 }: InfiniteScrollProps) => {
-  const [showLoader, setShowLoader] = useState(false);
+  // Remplacer useState par useRef pour éviter les re-rendus
+  const loaderShown = useRef(false);
+  
+  // Références pour le contrôle des appels
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollEventRef = useRef<any>(null);
-
-  // vérifie si on doit charger plus de contenu
+  const initialLoadDone = useRef<boolean>(false);
+  const loadMoreCalledRecently = useRef<boolean>(false);
+  const lastScrollHeight = useRef<number>(0);
+  
+  // Fonction pour vérifier seulement pendant le défilement
   const checkScrollPosition = () => {
-    if (!scrollRef.current || isLoading || !hasMore) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    // Protection contre les appels multiples, trop rapides ou inutiles
+    if (!scrollRef.current || isLoading || !hasMore || loadMoreCalledRecently.current) return;
     
-    // vérifie si on est proche de la fin du scroll
-    if (scrollHeight - scrollTop - clientHeight < threshold) {
-      setShowLoader(true);
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+
+    // Éviter les vérifications inutiles si la hauteur n'a pas changé
+    if (lastScrollHeight.current === scrollHeight && lastScrollHeight.current > 0) return;
+    lastScrollHeight.current = scrollHeight;
+    
+    // Uniquement charger si on est proche de la fin du scroll
+    if (scrollHeight > clientHeight && scrollHeight - scrollTop - clientHeight < threshold) {
+      loadMoreCalledRecently.current = true;
+      // Console pour debugging
+      console.log('📜 Approaching end of scroll, loading more...');
       loadMore();
-    } else {
-      setShowLoader(false);
+      loaderShown.current = true;
     }
   };
 
@@ -54,29 +68,40 @@ const InfiniteScroll = ({
     };
   };
 
-  // event listener pour le scroll
+  // Gestion du scroll uniquement - hook optimisé
   useEffect(() => {
     const scrollElement = scrollRef.current;
     if (!scrollElement) return;
 
-    // throttle pour éviter trop d'appels pendant le scroll
-    scrollEventRef.current = throttle(checkScrollPosition, 150);
-    
-    checkScrollPosition();
-    
+    // Plus long délai pour le throttle
+    scrollEventRef.current = throttle(checkScrollPosition, 500);
     scrollElement.addEventListener('scroll', scrollEventRef.current);
     
-    // Cleanup
     return () => {
       if (scrollElement && scrollEventRef.current) {
         scrollElement.removeEventListener('scroll', scrollEventRef.current);
       }
     };
-  }, [isLoading, hasMore]); // re-attacher quand isLoading ou hasMore change
+  }, []);
 
+  // Réinitialiser le flag quand isLoading change
   useEffect(() => {
-    checkScrollPosition();
-  }, [children]);
+    if (!isLoading) {
+      // Attendre un moment après la fin du chargement pour permettre un nouveau chargement
+      setTimeout(() => {
+        loadMoreCalledRecently.current = false;
+      }, 500);
+    }
+  }, [isLoading]);
+
+  // Chargement initial - UNIQUEMENT au premier rendu et si demandé
+  useEffect(() => {
+    if (initialLoad && hasMore && !isLoading && !initialLoadDone.current) {
+      initialLoadDone.current = true;
+      console.log('🔍 Initial load triggered');
+      loadMore();
+    }
+  }, []);
 
   return (
     <div 
@@ -87,11 +112,11 @@ const InfiniteScroll = ({
       {/* Contenu */}
       {children}
       
-      {/* Loader */}
-      {showLoader && isLoading && loader}
+      {/* Loader - uniquement si on charge */}
+      {isLoading && loader}
       
       {/* Message de fin */}
-      {!hasMore && endMessage}
+      {!hasMore && !isLoading && endMessage}
     </div>
   );
 };
