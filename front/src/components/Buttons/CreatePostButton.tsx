@@ -25,11 +25,6 @@ const CreatePostButton = ({ onClick, user }: CreatePostButtonProps) => {
     }
   };
   
-  const handleSubmitPost = (postData: { content: string; images: string[] }) => {
-    console.log('Post soumis:', postData);
-    // Ici vous pouvez ajouter la logique pour envoyer le post à l'API
-  };
-  
   return (
     <>
       <motion.div
@@ -81,7 +76,6 @@ const CreatePostButton = ({ onClick, user }: CreatePostButtonProps) => {
       <CreatePostModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmitPost}
         user={user}
       />
     </>
