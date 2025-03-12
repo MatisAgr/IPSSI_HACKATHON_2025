@@ -55,7 +55,7 @@ export const getRecentPosts = async (req: AuthRequest, res: Response): Promise<v
  */
 export const createPost = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { texte, media, isThread } = req.body;
+      const { texte, media, isThread = true } = req.body;
       let { tags } = req.body;
   
       // Vérifier si l'utilisateur est connecté
