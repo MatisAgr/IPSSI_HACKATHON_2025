@@ -126,7 +126,7 @@ export default function Feed() {
           name: post.author?.username || 'Utilisateur',
           username: post.author?.hashtag || 'user',
           avatar: post.author?.pdp || `https://randomuser.me/api/portraits/lego/${Math.floor(Math.random() * 8) + 1}.jpg`,
-          verified: post.author?.premium || false
+          premium: post.author?.premium || false  // Utilisation de premium au lieu de verified
         },
         content: post.texte || post.text || '',
         image: post.media?.url || post.image || null,

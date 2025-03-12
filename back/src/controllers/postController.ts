@@ -496,7 +496,7 @@ export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('author', 'username hashtag pdp')
+      .populate('author', 'username hashtag pdp premium')
       .select('author texte isThread createdAt');
 
     if (posts.length === 0) {
