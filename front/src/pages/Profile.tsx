@@ -225,12 +225,6 @@ export default function Profile() {
                                         ) : formattedPosts.length === 0 ? (
                                             <div className="bg-gray-50 p-8 rounded-lg text-center">
                                                 <p className="text-gray-600 mb-4">Vous n'avez pas encore publié de posts.</p>
-                                                <button
-                                                    onClick={() => document.getElementById('create-post-button')?.click()}
-                                                    className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
-                                                >
-                                                    Créer votre premier post
-                                                </button>
                                             </div>
                                         ) : (
                                             <>
