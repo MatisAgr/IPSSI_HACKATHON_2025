@@ -1,6 +1,5 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import Cookies from "js-cookie";
 import { loginUser } from "../../callApi/CallApi_Login";
 import ForgetPasswordModal from "../Modals/ForgetPasswordModal";
 import FadeIn from "../Animations/FadeIn";
@@ -46,7 +45,7 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       console.log("password: ", password);
       console.log("isRememberMeChecked: ", isRememberMeChecked);
       console.log(response);
-      // navigate("/");
+      navigate("/");
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur s'est produite");

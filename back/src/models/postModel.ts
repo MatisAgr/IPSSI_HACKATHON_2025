@@ -36,7 +36,7 @@ const PostSchema = new Schema({
     }],
     isThread: {
         type: Boolean,
-        default: false
+        default: true
     }
 }, {
     timestamps: true 
