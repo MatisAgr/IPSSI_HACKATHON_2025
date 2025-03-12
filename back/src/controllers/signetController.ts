@@ -147,3 +147,39 @@ export const toggleSignet = async (req: AuthRequest, res: Response): Promise<voi
     });
   }
 };
+
+/**
+ * Compte le nombre de signets pour un post
+ * @route GET /api/signet/count/:postId
+ * @access Public
+ */
+export const getSignetCount = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { postId } = req.params;
+    
+    // Vérifier si le post existe
+    const post = await Post.findById(postId);
+    if (!post) {
+      res.status(404).json({
+        success: false,
+        message: "Post non trouvé"
+      });
+      return;
+    }
+
+    const count = await Signet.countDocuments({ post_id: postId });
+
+    res.status(200).json({
+      success: true,
+      data: { count }
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du comptage des signets:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors du comptage des signets",
+      error: (error as Error).message
+    });
+  }
+};

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLikes, toggleLike } from '../controllers/likeController';
+import { getLikes, toggleLike, getLikeCount } from '../controllers/likeController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -9,5 +9,9 @@ router.get('/', protect, getLikes);
 
 // Route pour ajouter/supprimer un like
 router.post('/:postId', protect, toggleLike);
+
+// Route pour récupérer le nombre de likes d'un post
+router.get('/count/:postId', getLikeCount);
+
 
 export default router;

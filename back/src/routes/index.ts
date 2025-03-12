@@ -4,7 +4,8 @@ import postRoutes from "./postRoutes";
 import signetRoutes from "./signetRoutes";
 import likeRoutes from './likeRoutes';
 import retweetRoutes from './retweetRoutes';
-import userRoutes from "./userRoutes";
+import reponseRoutes from './reponseRoutes';
+
 
 const router = express.Router();
 
@@ -14,5 +15,6 @@ router.use("/post", postRoutes);
 router.use("/signet", signetRoutes);
 router.use("/like", likeRoutes);
 router.use("/retweet", retweetRoutes);
-router.use("/user", userRoutes);
+router.use("/reponse", reponseRoutes);
+
 export default router;

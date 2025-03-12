@@ -153,3 +153,39 @@ export const toggleLike = async (req: AuthRequest, res: Response): Promise<void>
     });
   }
 };
+
+/**
+ * Compte le nombre de likes pour un post
+ * @route GET /api/like/count/:postId
+ * @access Public
+ */
+export const getLikeCount = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { postId } = req.params;
+    
+    // Vérifier si le post existe
+    const post = await Post.findById(postId);
+    if (!post) {
+      res.status(404).json({
+        success: false,
+        message: "Post non trouvé"
+      });
+      return;
+    }
+
+    const count = await Like.countDocuments({ post_id: postId });
+
+    res.status(200).json({
+      success: true,
+      data: { count }
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du comptage des likes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors du comptage des likes",
+      error: (error as Error).message
+    });
+  }
+};
