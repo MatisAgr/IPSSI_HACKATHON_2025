@@ -103,7 +103,7 @@ export default function Profile() {
         bio: userProfile.bio || "Aucune biographie",
         followers: "0", // remplacer par les vraies données quand api dispo
         following: "0", // remplacer par les vraies données quand api dispo
-        profileImage: userProfile.pdp || "https://randomuser.me/api/portraits/men/32.jpg",
+        profileImage: userProfile.pdp || "",
         coverImage: userProfile.pdb || "",
         joinDate: formatJoinDate(userProfile.createdAt),
         isPremium: userProfile.premium
@@ -114,7 +114,7 @@ export default function Profile() {
         bio: 'Chargement de votre profil...',
         followers: '0',
         following: '0',
-        profileImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+        profileImage: '',
         coverImage: '',
         joinDate: ''
     };
@@ -125,7 +125,7 @@ export default function Profile() {
         user: {
             name: post.author.username,
             username: post.author.username,
-            avatar: post.author.pdp || "https://randomuser.me/api/portraits/men/32.jpg",
+            avatar: post.author.pdp || "",
             verified: false
         },
         content: post.texte,
