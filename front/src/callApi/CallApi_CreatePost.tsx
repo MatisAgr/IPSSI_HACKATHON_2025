@@ -43,7 +43,7 @@ export const createPost = async (
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
-      body: JSON.stringify(postData), // Envoie uniquement {texte: "..."}
+      body: JSON.stringify(postData),
     });
 
     const data = await response.json();
