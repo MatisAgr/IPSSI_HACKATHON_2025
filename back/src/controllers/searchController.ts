@@ -10,7 +10,7 @@ import Post from "../models/postModel";
 export const searchUserByHashtag = async (req: Request, res: Response): Promise<void> => {
   try {
     const { hashtag } = req.params;
-    const searchTerm = hashtag.startsWith('#') ? hashtag : `#${hashtag}`;
+    const searchTerm = hashtag.startsWith('@') ? hashtag : `@${hashtag}`;
 
     // Recherche exacte du hashtag
     const users = await User.find({ 
