@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import User from '../models/userModel';
 import Follow from '../models/followModel';
 import mongoose from 'mongoose';
+import { sendNotification } from '../services/notificationService';
+
 
 /**
  * Follow a user
@@ -49,6 +51,14 @@ export const followUser = async (req: Request, res: Response) => {
 
     await newFollow.save();
 
+    // Envoyer une notification à l'utilisateur qui est suivi
+    await sendNotification(
+      followingId,  // Destinataire de la notification
+      'follow',     // Type de notification
+      undefined,    // Pas de postId pour un follow
+      followerId    // L'utilisateur qui a effectué l'action
+    );
+
     res.status(201).json({ 
       success: true, 
       message: 'Utilisateur suivi avec succès',
@@ -69,7 +79,6 @@ export const followUser = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
-
 /**
  * Unfollow a user
  * @route DELETE /api/follow/:id
