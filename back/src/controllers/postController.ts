@@ -568,3 +568,27 @@ export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void
     });
   }
 };
+
+export const updatePopularityScore = async (postId: string): Promise<void> => {
+  try {
+    // Récupérer les compteurs en parallèle
+    const [likeCount, retweetCount, replyCount] = await Promise.all([
+      Like.countDocuments({ post_id: postId }),
+      Retweet.countDocuments({ post_id: postId }),
+      Reponse.countDocuments({ post_id: postId })
+    ]);
+
+    // Calculer le nouveau score
+    const popularityScore = 
+      (likeCount * 1) + 
+      (retweetCount * 2) + 
+      (replyCount * 1.5);
+
+    // Mettre à jour le score dans la collection Post
+    await Post.findByIdAndUpdate(postId, { popularityScore });
+
+    console.log(`📊 Score de popularité mis à jour pour le post ${postId}: ${popularityScore}`);
+  } catch (error) {
+    console.error(`💥 Erreur lors de la mise à jour du score de popularité: ${error}`);
+  }
+};

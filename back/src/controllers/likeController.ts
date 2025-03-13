@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import Post from "../models/postModel";
 import Like from "../models/likeModel";
 import { IUser } from "../models/userModel";
+import { updatePopularityScore } from "./postController";
 import { sendNotification } from "../services/notificationService";
+
 
 interface AuthRequest extends Request {
   user?: IUser;
@@ -120,6 +122,9 @@ export const toggleLike = async (req: AuthRequest, res: Response): Promise<void>
         post_id: postId
       });
 
+      // Mettre à jour le score après l'ajout du like
+      await updatePopularityScore(postId);
+
       // Mettre à jour le compteur de likes du post
       await Post.findByIdAndUpdate(postId, { $inc: { likesCount: 1 } });
 
@@ -142,6 +147,9 @@ export const toggleLike = async (req: AuthRequest, res: Response): Promise<void>
     } else {
       // Supprimer le like existant
       await Like.findByIdAndDelete(existingLike._id);
+
+      // Mettre à jour le score après le retrait du like
+      await updatePopularityScore(postId);
 
       // Décrémenter le compteur de likes du post
       await Post.findByIdAndUpdate(postId, { $inc: { likesCount: -1 } });

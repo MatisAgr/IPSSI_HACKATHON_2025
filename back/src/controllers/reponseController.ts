@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Reponse from "../models/reponseModel";
 import Post from "../models/postModel";
 import { IUser } from "../models/userModel";
+import { updatePopularityScore } from "./postController";
 
 interface AuthRequest extends Request {
   user?: IUser;
@@ -79,6 +80,8 @@ export const createReponse = async (req: AuthRequest, res: Response): Promise<vo
       texte,
       media
     });
+
+    await updatePopularityScore(postId);
 
     // Populer la réponse avec les informations nécessaires
     await reponse.populate([
