@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import User, { IUser } from "../models/userModel";
+import Post from "../models/postModel";
+import Follow from "../models/followModel";
 
 // Interface pour étendre Request avec l'utilisateur
 interface AuthRequest extends Request {
@@ -114,6 +116,59 @@ export const getUserById = async (req: AuthRequest, res: Response): Promise<void
 
   } catch (error) {
     console.error(`💥 Erreur lors de la récupération de l'utilisateur: ${(error as Error).message}`);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la récupération de l'utilisateur",
+      error: (error as Error).message
+    });
+  }
+  console.log('----------------------------------');
+};
+
+
+/**
+ * Récupère toutes les informations d'un utilisateur via son hashtag
+ * @route GET /api/user/hashtag/:hashtag
+ * @access Private - Requiert authentification
+ */
+export const getUserByHashtag = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { hashtag } = req.params;
+    console.log(`🔍 Recherche de l'utilisateur avec le hashtag: ${hashtag}`);
+    
+    // Rechercher un utilisateur par hashtag (exact match) et peupler ses posts
+    const user = await User.findOne({ hashtag })
+      .select('-password -__v');
+
+    if (!user) {
+      console.log(`❌ Utilisateur non trouvé pour le hashtag: ${hashtag}`);
+      res.status(404).json({
+        success: false,
+        message: "Utilisateur non trouvé"
+      });
+      return;
+    }
+
+    console.log(`✅ Utilisateur trouvé: ${user.username}`);
+
+    // Récupérer les posts associés à l'utilisateur via leur identifiant correspondant à "author"
+    const posts = await Post.find({ author: user._id }).sort({ createdAt: -1 });
+
+    // Compter le nombre de followers et de followings
+    const followerCount = await Follow.countDocuments({ following: user._id });
+    const followingCount = await Follow.countDocuments({ follower: user._id });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        posts,
+        followerCount,
+        followingCount
+      }
+    });
+  } catch (error) {
+    console.error(`💥 Erreur lors de la récupération de l'utilisateur par hashtag: ${(error as Error).message}`);
     res.status(500).json({
       success: false,
       message: "Erreur serveur lors de la récupération de l'utilisateur",
