@@ -13,7 +13,8 @@ import { toggleFollow } from '../callApi/CallApi_ToggleFollow';
 
 // Définition de l'interface UserProfileData si elle n'existe pas déjà
 interface UserProfileData {
-  id: string;
+  id?: string;  // pour la compatibilité
+  _id: string;  // pour la réponse API
   username: string;
   hashtag: string;
   bio?: string;
@@ -84,6 +85,7 @@ export default function ProfileUser() {
             try {
                 // Récupérer les données du profil par hashtag avec notre nouvelle API
                 const profileResponse = await getProfileByHashtag(hashtag);
+                console.log("📦 Réponse API getProfileByHashtag:", profileResponse);
 
                 if (profileResponse.success && profileResponse.data) {
                     // Extraire les données du profil, des posts, et les compteurs de followers
@@ -122,13 +124,25 @@ export default function ProfileUser() {
 
     // Gérer le suivi/désabonnement
     const handleToggleFollow = async () => {
-        if (!userProfile?.id) return;
-
+        // Utilisez _id au lieu de id
+        const userId = userProfile?._id || userProfile?.id;
+        
+        if (!userId) {
+            console.error("Impossible de suivre: ID d'utilisateur manquant");
+            console.log("Profil utilisateur:", userProfile);
+            return;
+        }
+        
+        console.log("🔍 Tentative de toggle follow pour l'utilisateur", userId);
+    
         try {
-            const response = await toggleFollow(userProfile.id);
+            const response = await toggleFollow(userId);
+            console.log("📡 Réponse API toggle follow:", response);
             
             if (response.success && response.isFollowing !== undefined) {
-                // Mise à jour du statut de suivi en fonction de la réponse de l'API
+                console.log(`✅ Statut mis à jour: ${response.isFollowing ? 'Suivre' : 'Ne plus suivre'}`);
+                
+                // Mise à jour du statut de suivi
                 setIsFollowing(response.isFollowing);
                 
                 // Mettre à jour le compteur de followers
@@ -136,14 +150,11 @@ export default function ProfileUser() {
                     ...prev,
                     followers: (parseInt(prev.followers) + (response.isFollowing ? 1 : -1)).toString()
                 }));
-                
-                // Afficher un message de succès (optionnel)
-                console.log(`${response.isFollowing ? 'Abonné' : 'Désabonné'} avec succès`);
             } else {
-                console.error("Erreur lors du changement de statut:", response.message);
+                console.error("❌ Erreur lors du changement de statut:", response.message);
             }
         } catch (error) {
-            console.error("Erreur lors du changement de statut de suivi:", error);
+            console.error("💥 Erreur lors du changement de statut de suivi:", error);
         }
     };
 
@@ -211,6 +222,7 @@ export default function ProfileUser() {
                     <UserCard
                         user={userCardData}
                         isOtherUser={true}
+                        isAuthenticated={true}
                     />
                 )}
 
