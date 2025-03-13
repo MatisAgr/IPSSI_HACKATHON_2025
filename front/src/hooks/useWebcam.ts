@@ -1,9 +1,10 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 
 interface UseWebcamProps {
     setWebcamError: (error: string | null) => void;
     setPhotoURL: (url: string | null) => void;
     setWebcamPermissionDenied: (denied: boolean) => void;
+    captureInterval?: number; // Intervalle de capture en ms (défaut: 500ms)
 }
 
 interface UseWebcamReturn {
@@ -14,15 +15,25 @@ interface UseWebcamReturn {
     takePhoto: () => void;
     resetPhoto: () => void;
     handleWebcamSubmit: (e: React.FormEvent) => void;
+    // Nouvelles fonctions:
+    startSnapshotRecording: () => void;
+    stopSnapshotRecording: () => void;
+    snapshots: string[];
+    isRecording: boolean;
+    clearSnapshots: () => void;
 }
 
 const useWebcam = ({
     setWebcamError,
     setPhotoURL,
-    setWebcamPermissionDenied
+    setWebcamPermissionDenied,
+    captureInterval = 500
 }: UseWebcamProps): UseWebcamReturn => {
     const webcamRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const intervalRef = useRef<number | null>(null);
+    const [snapshots, setSnapshots] = useState<string[]>([]);
+    const [isRecording, setIsRecording] = useState<boolean>(false);
 
     const initWebcam = async () => {
         setWebcamError(null);
@@ -56,7 +67,12 @@ const useWebcam = ({
     };
 
     const stopWebcam = () => {
-        // Utilisez webcamRef pour accéder au stream actuel
+        // Arrêter l'enregistrement des snapshots si actif
+        if (intervalRef.current) {
+            stopSnapshotRecording();
+        }
+        
+        // Arrêter la webcam
         if (webcamRef.current && webcamRef.current.srcObject) {
             const currentStream = webcamRef.current.srcObject as MediaStream;
             currentStream.getTracks().forEach(track => {
@@ -77,9 +93,11 @@ const useWebcam = ({
             
             context?.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            const dataURL = canvas.toDataURL('image/jpeg');
+            const dataURL = canvas.toDataURL('image/jpeg', 0.8); // Compression pour plus d'efficacité
             setPhotoURL(dataURL);
+            return dataURL;
         }
+        return null;
     };
 
     const resetPhoto = () => {
@@ -89,7 +107,35 @@ const useWebcam = ({
     const handleWebcamSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         stopWebcam();
-        // Here you could add the photo to your user data
+    };
+
+    // Nouvelle fonction: Démarrer l'enregistrement des snapshots
+    const startSnapshotRecording = () => {
+        if (isRecording) return; // Ne pas démarrer si déjà en cours
+        
+        setIsRecording(true);
+        
+        // Créer un intervalle pour capturer des photos régulièrement
+        intervalRef.current = window.setInterval(() => {
+            const snapshot = takePhoto();
+            if (snapshot) {
+                setSnapshots(prev => [...prev, snapshot]);
+            }
+        }, captureInterval);
+    };
+
+    // Nouvelle fonction: Arrêter l'enregistrement des snapshots
+    const stopSnapshotRecording = () => {
+        if (intervalRef.current) {
+            window.clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+        setIsRecording(false);
+    };
+
+    // Nouvelle fonction: Effacer tous les snapshots
+    const clearSnapshots = () => {
+        setSnapshots([]);
     };
 
     useEffect(() => {
@@ -105,7 +151,12 @@ const useWebcam = ({
         stopWebcam,
         takePhoto,
         resetPhoto,
-        handleWebcamSubmit
+        handleWebcamSubmit,
+        startSnapshotRecording,
+        stopSnapshotRecording,
+        snapshots,
+        isRecording,
+        clearSnapshots
     };
 };
 

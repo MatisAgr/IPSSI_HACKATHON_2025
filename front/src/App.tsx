@@ -25,7 +25,9 @@ import ProfileUser from "./pages/ProfileUser";
 import Page404 from "./pages/Page404";
 import Notification from "./components/Notification";
 import useSocketAuth from './hooks/useSocketAuth';
+
 import Admin from "./pages/Admin";
+import Admin2 from "./pages/Admin2";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -73,6 +75,7 @@ export default function App() {
             } />
 
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin2" element={<Admin2 />} />
 
             <Route path="*" element={<Page404 />} />
 
