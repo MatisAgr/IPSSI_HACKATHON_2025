@@ -168,9 +168,13 @@ export default function EmotionTestPage() {
     setEmotionLoading(true);
     
     try {
-      // Récupérer le dernier résultat d'émotion
-      console.log("Récupération des émotions depuis:", EMOTION_API_URL);
-      const response = await axios.get(EMOTION_API_URL);
+      // MODIFICATION: Construction de l'URL avec les paramètres user_id et post_id
+      const userId = userProfile?.id || "unknown-user";
+      const postId = post?.id || "unknown-post";
+      const emotionUrl = `${EMOTION_API_URL}?user_id=${userId}&post_id=${postId}`;
+      
+      console.log("Récupération des émotions depuis:", emotionUrl);
+      const response = await axios.get(emotionUrl);
       console.log("Réponse de l'API d'émotions:", response.data);
       
       if (response.status === 200 && response.data && response.data.length > 0) {
