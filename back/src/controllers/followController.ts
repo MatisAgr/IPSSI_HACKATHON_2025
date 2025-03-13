@@ -321,3 +321,81 @@ export const getMyFollowCount = async (req: AuthRequest, res: Response) => {
   }
   console.log('----------------------------------');
 };
+
+export const getMyFollowers = async (req: AuthRequest, res: Response) => {
+  try {
+    // Vérifier si l'utilisateur est connecté
+    if (!req.user) {
+      console.log(`🔒 Accès refusé: utilisateur non authentifié`);
+      res.status(401).json({
+        success: false,
+        message: "Non autorisé, veuillez vous connecter"
+      });
+      return;
+    }
+
+    const userId = req.user._id;
+    console.log(`👤 Récupération des followers pour l'utilisateur connecté (ID: ${userId})`);
+
+    // Récupérer tous les follows où l'utilisateur est suivi
+    const follows = await Follow.find({ following: userId })
+      .populate('follower', 'username hashtag bio pdp premium');
+
+    const followers = follows.map(follow => follow.follower);
+
+    console.log(`✅ Followers récupérés pour l'utilisateur ${req.user.username}: ${followers.length}`);
+
+    res.status(200).json({ 
+      success: true, 
+      count: followers.length,
+      data: followers
+    });
+  } catch (error) {
+    console.error(`💥 Erreur lors de la récupération des followers: ${(error as Error).message}`);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur lors de la récupération des followers',
+      error: (error as Error).message
+    });
+  }
+  console.log('----------------------------------');
+};
+
+export const getMyFollowing = async (req: AuthRequest, res: Response) => {
+  try {
+    // Vérifier si l'utilisateur est connecté
+    if (!req.user) {
+      console.log(`🔒 Accès refusé: utilisateur non authentifié`);
+      res.status(401).json({
+        success: false,
+        message: "Non autorisé, veuillez vous connecter"
+      });
+      return;
+    }
+
+    const userId = req.user._id;
+    console.log(`👤 Récupération des following pour l'utilisateur connecté (ID: ${userId})`);
+
+    // Récupérer tous les follows où l'utilisateur suit d'autres personnes
+    const follows = await Follow.find({ follower: userId })
+      .populate('following', 'username hashtag bio pdp premium');
+
+    const following = follows.map(follow => follow.following);
+
+    console.log(`✅ Following récupérés pour l'utilisateur ${req.user.username}: ${following.length}`);
+
+    res.status(200).json({ 
+      success: true, 
+      count: following.length,
+      data: following
+    });
+  } catch (error) {
+    console.error(`💥 Erreur lors de la récupération des following: ${(error as Error).message}`);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur lors de la récupération des following',
+      error: (error as Error).message
+    });
+  }
+  console.log('----------------------------------');
+};

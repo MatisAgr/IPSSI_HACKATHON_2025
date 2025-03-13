@@ -313,11 +313,12 @@ export default function CreatePostModal({
                                 transition={{ duration: 0.3 }}
                             >
                                 <PostCard
+                                    id="preview-post"
                                     user={{
                                         name: userName,
                                         username: userUsername,
                                         avatar: userProfileImage,
-                                        verified: userVerified
+                                        premium: userVerified
                                     }}
                                     content={content}
                                     timestamp="À l'instant"

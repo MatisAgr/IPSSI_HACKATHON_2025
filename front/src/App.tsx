@@ -23,6 +23,7 @@ import Profile from "./pages/Profile";
 import Page404 from "./pages/Page404";
 import Notification from "./components/Notification";
 import useSocketAuth from './hooks/useSocketAuth';
+import Admin from "./pages/Admin";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,6 +57,8 @@ export default function App() {
                 <Feed />
               </ProtectedRoute>
             } />
+
+            <Route path="/admin" element={<Admin />} />
 
             <Route path="*" element={<Page404 />} />
 
