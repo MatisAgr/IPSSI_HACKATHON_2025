@@ -98,77 +98,83 @@ export default function Feed() {
 
   const loadingRef = useRef(false);
 
-  const loadMorePosts = useCallback(async () => {
-    if (isLoading || loadingRef.current || !hasMore) return;
+// Déclarez une référence pour le numéro de page
+const pageRef = useRef(1);
 
-    setIsLoading(true);
-    loadingRef.current = true;
+const loadMorePosts = useCallback(async () => {
+  if (isLoading || loadingRef.current || !hasMore) return;
 
-    try {
-      console.log(`🔄 Chargement des posts - page ${page}`);
+  setIsLoading(true);
+  loadingRef.current = true;
 
-      const response = await getPosts(page);
-      console.log("Réponse complète:", response);
+  try {
+    console.log(`🔄 Chargement des posts - page ${pageRef.current}`);
+    const response = await getPosts(pageRef.current);
+    console.log("Réponse complète:", response);
 
-      if (!response.success) {
-        console.error('❌ Erreur lors du chargement des posts:', response.message);
-        setHasMore(false);
-        return;
-      }
-
-      // CORRECTION: La structure est response.data.posts et non response.data?.posts
-      const postsArray = response.data?.posts || [];
-      console.log("Posts array:", postsArray);
-
-      if (postsArray.length === 0) {
-        console.log('📭 Aucun nouveau post trouvé');
-        setHasMore(false);
-        return;
-      }
-
-      console.log(`✅ ${postsArray.length} posts récupérés`);
-
-      const formattedPosts = postsArray.map(({ post, stats }: any) => ({
-        id: post._id || `post-${Date.now()}-${Math.random()}`,
-        user: {
-          name: post.author?.username || 'Utilisateur',
-          username: post.author?.hashtag || 'user',
-          avatar: post.author?.pdp || `https://randomuser.me/api/portraits/lego/1.jpg`,
-          premium: post.author?.premium || false  // Utilisation de premium au lieu de verified
-        },
-        content: post.texte || post.text || '',
-        image: post.media?.url || post.image || null,
-        timestamp: formatTimeAgo(new Date(post.createdAt || Date.now())),
-        stats: {
-          comments: stats.replies || 0,
-          retweets: stats.retweets || 0,
-          likes: stats.likes || 0,
-          bookmarks: stats.signets || 0
-        },
-        isLiked: post.isLiked || false,
-        isRetweeted: post.isRetweeted || false,
-        isBookmarked: post.isBookmarked || false
-      }));
-
-      setPosts(prevPosts => [...prevPosts, ...formattedPosts]);
-      setPage(prevPage => prevPage + 1);
-
-      // CORRECTION: Utiliser la bonne structure pour la pagination
-      if (response.data?.pagination) {
-        setHasMore(response.data.pagination.hasMore);
-        console.log(`📄 Pagination: page ${response.data.pagination.page}/${response.data.pagination.pages}, hasMore: ${response.data.pagination.hasMore}`);
-      }
-
-    } catch (error) {
-      console.error("❌ Erreur lors du chargement des posts:", error);
+    if (!response.success) {
+      console.error('❌ Erreur lors du chargement des posts:', response.message);
       setHasMore(false);
-    } finally {
-      setTimeout(() => {
-        setIsLoading(false);
-        loadingRef.current = false;
-      }, 300);
+      return;
     }
-  }, [page, hasMore, formatTimeAgo]);
+
+    // Vérifiez ici que vous récupérez bien le bon tableau de posts
+    const postsArray = response.data.posts || [];
+    console.log("Posts array:", postsArray);
+
+    if (postsArray.length === 0) {
+      console.log('📭 Aucun nouveau post trouvé');
+      setHasMore(false);
+      return;
+    }
+
+    console.log(`✅ ${postsArray.length} posts récupérés`);
+
+    const formattedPosts = postsArray.map(({ post, stats }) => ({
+      id: post._id || `post-${Date.now()}-${Math.random()}`,
+      user: {
+        name: post.author?.username || 'Utilisateur',
+        username: post.author?.hashtag || 'user',
+        avatar: post.author?.pdp || `https://randomuser.me/api/portraits/lego/1.jpg`,
+        premium: post.author?.premium || false
+      },
+      content: post.texte || post.text || '',
+      image: post.media?.url || post.image || null,
+      timestamp: formatTimeAgo(new Date(post.createdAt || Date.now())),
+      stats: {
+        comments: stats.replies || 0,
+        retweets: stats.retweets || 0,
+        likes: stats.likes || 0,
+        bookmarks: stats.signets || 0
+      },
+      isLiked: post.isLiked || false,
+      isRetweeted: post.isRetweeted || false,
+      isBookmarked: post.isBookmarked || false
+    }));
+
+    // Ajoutez les nouveaux posts aux anciens
+    setPosts(prevPosts => [...prevPosts, ...formattedPosts]);
+
+    // Mettez à jour la pagination si disponible
+    if (response.data.pagination) {
+      setHasMore(response.data.pagination.hasMore);
+      console.log(`📄 Pagination: page ${response.data.pagination.page}/${response.data.pagination.pages}, hasMore: ${response.data.pagination.hasMore}`);
+    }
+
+    // Incrémentez la page pour le prochain appel
+    pageRef.current += 1;
+
+  } catch (error) {
+    console.error("❌ Erreur lors du chargement des posts:", error);
+    setHasMore(false);
+  } finally {
+    setTimeout(() => {
+      setIsLoading(false);
+      loadingRef.current = false;
+    }, 300);
+  }
+}, [hasMore, formatTimeAgo, isLoading]);
+
 
   // Initialisation des données au montage du composant
   useEffect(() => {
