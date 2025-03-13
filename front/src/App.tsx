@@ -11,6 +11,7 @@ import Navbar from "./components/Navbar/Navbar";
 
 import Home from "./pages/Home";
 import Feed from "./pages/Feed";
+import FeedTag from "./pages/FeedTag";
 
 // import Dashboard from "./Pages/Dashboard/Dashboard";
 
@@ -19,6 +20,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import Profile from "./pages/Profile";
+import ProfileUser from "./pages/ProfileUser";
 
 import Page404 from "./pages/Page404";
 import Admin from "./pages/Admin";
@@ -47,9 +49,21 @@ export default function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/user/:hashtag" element={
+              <ProtectedRoute>
+                {/* <ProfileUser /> */}
+              </ProtectedRoute>
+            } />
+
             <Route path="/feed" element={
               <ProtectedRoute>
                 <Feed />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/feed/search" element={
+              <ProtectedRoute>
+                <FeedTag />
               </ProtectedRoute>
             } />
 
