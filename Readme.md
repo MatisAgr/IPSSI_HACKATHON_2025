@@ -47,15 +47,12 @@ XMotion est une application web développée en groupe pour le HACKATHON 2025 de
 ## Configuration
 1. Backend : Créez un fichier `.env` dans le dossier `back` et ajoutez les variables d'environnement suivantes :
     ```env
-    PORT=5000
-    MONGO_URI=votre_mongo_uri
-    JWT_SECRET=votre_secret_jwt
+    MONGO_URI=mongodb://84.7.118.50:27017/
+    MONGO8_USER=Ipssie2025
+    MONGO8_PASSWORD=2025Ipssie
     ```
 
-2. Frontend : Renommez le fichier `.env.example` en `.env` dans le dossier `front`.et lancez la commande suivante :
-    ```bash
-    make reload
-    ```
+2. Frontend : Renommez le fichier `.env.example` en `.env` dans le dossier `front`
 
 3. Modèle d'IA: Renommez le fichier `.env.example` en `.env et lancez la commande suivante à la racine du projet :
     ```bash
