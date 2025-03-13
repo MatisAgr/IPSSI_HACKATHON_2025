@@ -158,13 +158,25 @@ export const getUserByHashtag = async (req: AuthRequest, res: Response): Promise
     const followerCount = await Follow.countDocuments({ following: user._id });
     const followingCount = await Follow.countDocuments({ follower: user._id });
 
+    // Vérifier si l'utilisateur connecté suit déjà cet utilisateur
+    let isFollowing = false;
+    if (req.user && req.user._id) {
+      const followRecord = await Follow.findOne({
+        follower: req.user._id,
+        following: user._id
+      });
+      isFollowing = !!followRecord; // Convertit en booléen
+      console.log(`🔗 L'utilisateur connecté ${isFollowing ? 'suit' : 'ne suit pas'} cet utilisateur`);
+    }
+
     res.status(200).json({
       success: true,
       data: {
         user,
         posts,
         followerCount,
-        followingCount
+        followingCount,
+        isFollowing // Ajout de cette propriété
       }
     });
   } catch (error) {
