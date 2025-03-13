@@ -27,21 +27,19 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const hashtag = await generateUniqueHashtag(username, User);
     const age = date ? calculateAge(date) : 0;
 
-    // Create new user (password hashing is handled in the model's pre-save hook)
+    
     const user = await User.create({
       username,
-      hashtag, // generated from username
+      hashtag, 
       email,
-      premium: false, // Default value for new users
+      premium: false, 
       password,
       age,
       sexe,
     });
 
-    // Generate token for the new user
     const token = generateToken(user.id);
 
-    // Return success response with token
     res.status(201).json({
       success: true,
       message: "User registered successfully",
@@ -84,7 +82,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, remember } = req.body;
 
-    // Check for email and password
     if (!email || !password) {
       console.log("❌ Échec: email ou mot de passe manquant");
       res.status(400).json({
@@ -95,7 +92,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     console.log("🔍 Recherche de l'utilisateur avec l'email:", email);
-    // Find user by email
+
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
@@ -109,7 +106,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     console.log("👤 Utilisateur trouvé:", user.username);
 
-    // Check if password matches
     console.log("🔐 Vérification du mot de passe...");
     const isMatch = await user.comparePassword(password);
 
@@ -124,7 +120,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     console.log("✅ Mot de passe validé");
 
-    // Generate token for the user
     console.log("🔑 Génération du token...");
     const token = generateToken(user.id);
     console.log("📝 Token généré avec succès");
@@ -135,7 +130,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       remember ? "activée (7 jours)" : "désactivée (cookie de session)"
     );
 
-    // Options de base du cookie
     const cookieOptions: any = {
       httpOnly: false,
       sameSite: "lax",
@@ -153,12 +147,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       console.log("⏱️ Cookie de session (expire à la fermeture du navigateur)");
     }
 
-    // Définition du cookie avec les options appropriées
     res.cookie("token", token, cookieOptions);
     console.log("✅ Cookie configuré avec succès");
 
     console.log("🚀 Envoi de la réponse réussie");
-    // Return success response with token
     res.status(200).json({
       success: true,
       message: "Login successful",
