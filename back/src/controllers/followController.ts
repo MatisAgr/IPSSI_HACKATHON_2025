@@ -163,17 +163,18 @@ export const toggleFollowUser = async (req: AuthRequest, res: Response): Promise
  */
 export const getUserFollowers = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { hashtag } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      res
-        .status(400)
-        .json({ success: false, message: "ID utilisateur invalide" });
+    if (!hashtag) {
+      res.status(400).json({
+        success: false,
+        message: "Hashtag requis dans les paramètres",
+      });
       return;
     }
 
-    // Vérifier que l'utilisateur existe
-    const user = await User.findById(userId);
+    // Vérifier que l'utilisateur existe grâce au hashtag
+    const user = await User.findOne({ hashtag });
     if (!user) {
       res
         .status(404)
@@ -182,7 +183,7 @@ export const getUserFollowers = async (req: Request, res: Response) => {
     }
 
     // Récupérer tous les follows où l'utilisateur est suivi
-    const follows = await Follow.find({ following: userId }).populate(
+    const follows = await Follow.find({ following: user._id }).populate(
       "follower",
       "username hashtag bio pdp premium"
     );
@@ -208,26 +209,28 @@ export const getUserFollowers = async (req: Request, res: Response) => {
  */
 export const getUserFollowing = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { hashtag } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      res
-        .status(400)
-        .json({ success: false, message: "ID utilisateur invalide" });
+    if (!hashtag) {
+      res.status(400).json({
+        success: false,
+        message: "Hashtag requis dans les paramètres",
+      });
       return;
     }
 
-    // Vérifier que l'utilisateur existe
-    const user = await User.findById(userId);
+    // Vérifier que l'utilisateur existe grâce au hashtag
+    const user = await User.findOne({ hashtag });
     if (!user) {
-      res
-        .status(404)
-        .json({ success: false, message: "Utilisateur non trouvé" });
+      res.status(404).json({
+        success: false,
+        message: "Utilisateur non trouvé",
+      });
       return;
     }
 
     // Récupérer tous les follows où l'utilisateur suit d'autres personnes
-    const follows = await Follow.find({ follower: userId }).populate(
+    const follows = await Follow.find({ follower: user._id }).populate(
       "following",
       "username hashtag bio pdp premium"
     );

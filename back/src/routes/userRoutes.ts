@@ -19,8 +19,8 @@ const router = express.Router();
 
 // Routes pour les fonctionnalités follow/unfollow
 router.post('/follow/toggle', protect, toggleFollowUser);
-router.get('/followers/:userId', protect , getUserFollowers);
-router.get('/following/:userId', protect ,getUserFollowing);
+router.get('/followers/:hashtag', protect , getUserFollowers);
+router.get('/following/:hashtag', protect ,getUserFollowing);
 router.get('/follow/check', protect ,checkFollowStatus);
 router.get('/follow/count/:userId', protect , getFollowCount);
 

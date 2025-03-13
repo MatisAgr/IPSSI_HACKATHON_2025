@@ -176,7 +176,7 @@ export const getUserByHashtag = async (req: AuthRequest, res: Response): Promise
         posts,
         followerCount,
         followingCount,
-        isFollowing // Ajout de cette propriété
+        isFollowing
       }
     });
   } catch (error) {
