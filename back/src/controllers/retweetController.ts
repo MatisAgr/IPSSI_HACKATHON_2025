@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Post from "../models/postModel";
 import Retweet from "../models/retweetModel";
 import { IUser } from "../models/userModel";
+import { updatePopularityScore } from "./postController";
 
 interface AuthRequest extends Request {
   user?: IUser;
@@ -118,6 +119,8 @@ export const toggleRetweet = async (req: AuthRequest, res: Response): Promise<vo
         user_id: req.user._id,
         post_id: postId
       });
+      
+      await updatePopularityScore(postId);
 
       res.status(201).json({
         success: true,
@@ -127,6 +130,8 @@ export const toggleRetweet = async (req: AuthRequest, res: Response): Promise<vo
     } else {
       // Supprimer le retweet existant
       await Retweet.findByIdAndDelete(existingRetweet._id);
+      
+      await updatePopularityScore(postId);
 
       res.status(200).json({
         success: true,

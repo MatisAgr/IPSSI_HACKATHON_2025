@@ -11,6 +11,7 @@ export interface IPost extends Document {
     isThread: boolean;
     createdAt: Date;
     updatedAt: Date;
+    popularityScore: number;
 }
 
 const PostSchema = new Schema({
@@ -37,7 +38,10 @@ const PostSchema = new Schema({
     isThread: {
         type: Boolean,
         default: true
-    }
+    },
+    popularityScore: { 
+        type: Number, 
+        default: 0 } 
 }, {
     timestamps: true 
 });
