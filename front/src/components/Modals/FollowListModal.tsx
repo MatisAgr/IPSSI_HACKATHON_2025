@@ -132,7 +132,7 @@ const FollowListModal: React.FC<FollowListModalProps> = ({
                             e.stopPropagation();
                             onFollowToggle(user.id);
                           }}
-                          className={`flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium ${
+                          className={`flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium cursor-pointer ${
                             user.isFollowing
                               ? "bg-gray-100 text-gray-800 hover:bg-gray-200"
                               : "bg-blue-500 text-white hover:bg-blue-600"

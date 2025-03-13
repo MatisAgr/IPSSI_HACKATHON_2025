@@ -9,6 +9,14 @@ import UserActions from '../UserCardsItems/UserActions';
 import IconButton from '../Buttons/IconButton';
 import FollowButton from '../Buttons/FollowButton';
 
+interface UserFeatureProps {
+  followersData?: any[];
+  followingData?: any[];
+  followsLoading?: boolean;
+  onFollowToggle?: (userId: string) => void;
+  onUserClick?: (userId: string) => void;
+}
+
 interface UserCardProps {
   user: {
     username: string;
@@ -22,18 +30,20 @@ interface UserCardProps {
     joinDate: string;
     isPremium?: boolean;
     isFollowing?: boolean;
-    onFollowToggle?: () => void; // Déplacé à l'intérieur de user pour correspondre à votre format
+    onFollowToggle?: () => void;
   };
   onSettingsClick?: () => void;
   isAuthenticated?: boolean;
   isOtherUser?: boolean;
+  userFeaturesProps?: UserFeatureProps;
 }
 
 export const UserCard: React.FC<UserCardProps> = ({ 
   user, 
   onSettingsClick, 
   isAuthenticated = true,
-  isOtherUser = false
+  isOtherUser = false,
+  userFeatureProps
 }) => {
 
   console.log("User data in UserCard:", user);
@@ -50,8 +60,15 @@ export const UserCard: React.FC<UserCardProps> = ({
         <UserPicture profileImage={user.profileImage || "https://randomuser.me/api/portraits/lego/1.jpg"} />
 
         {/* Informations utilisateur */}
-        <UserFeatures user={user} isPremium={user.isPremium || false} />
-
+        <UserFeatures 
+          user={user} 
+          isPremium={user.isPremium || false}
+          followersData={userFeatureProps?.followersData}
+          followingData={userFeatureProps?.followingData}
+          onFollowToggle={userFeatureProps?.onFollowToggle}
+          onUserClick={userFeatureProps?.onUserClick}
+        />
+        
         {/* Boutons d'action */}
         <UserActions>
           {!isOtherUser ? (

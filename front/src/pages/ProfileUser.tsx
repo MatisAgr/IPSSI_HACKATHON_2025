@@ -9,7 +9,10 @@ import PostCard from '../components/Cards/PostCard';
 // Import de la fonction API pour récupérer le profil par hashtag
 import { getProfileByHashtag, UserProfileWithPostsData } from '../callApi/CallApi_GetProfileByHashtag';
 import { toggleFollow } from '../callApi/CallApi_ToggleFollow';
-// Import supprimé: import { checkFollowStatus } from '../callApi/CallApi_CheckFollow';
+import { getFollowerByHashtag } from '../callApi/CallApi_GetFollowerByHashtag';
+import { getFollowingByHashtag } from '../callApi/CallApi_GetFollowingByHashtag';
+ 
+
 
 // Définition de l'interface UserProfileData si elle n'existe pas déjà
 interface UserProfileData {
@@ -47,6 +50,10 @@ export default function ProfileUser() {
     const [followCounts, setFollowCounts] = useState({ followers: '0', following: '0' });
     const [isFollowing, setIsFollowing] = useState(false);
 
+    const [followers, setFollowers] = useState<any[]>([]); 
+    const [following, setFollowing] = useState<any[]>([]);
+    const [followsLoading, setFollowsLoading] = useState(true);
+
     // Formatage des timestamps et dates
     const formatTimestamp = (date: Date): string => {
         const now = new Date();
@@ -76,51 +83,76 @@ export default function ProfileUser() {
     // Charger le profil utilisateur en fonction du hashtag
     useEffect(() => {
         const loadUserProfile = async () => {
-            if (!hashtag) return;
+          if (!hashtag) return;
+          
+          setProfileLoading(true);
+          setProfileError(null);
+          setIsLoading(true);
+          setFollowsLoading(true); // Indicateur de chargement pour followers/following
+      
+          try {
+            // D'abord charger le profil
+            const profileResponse = await getProfileByHashtag(hashtag);
             
-            setProfileLoading(true);
-            setProfileError(null);
-            setIsLoading(true);
-
-            try {
-                // Récupérer les données du profil par hashtag avec notre nouvelle API
-                const profileResponse = await getProfileByHashtag(hashtag);
-                console.log("📦 Réponse API getProfileByHashtag:", profileResponse);
-
-                if (profileResponse.success && profileResponse.data) {
-                    // Extraire les données du profil, des posts, et les compteurs de followers
-                    const { user, posts, followerCount, followingCount } = profileResponse.data;
-                    
-                    // Mettre à jour le profil utilisateur
-                    setUserProfile(user);
-                    
-                    // Mettre à jour les posts
-                    setUserPosts(posts || []);
-                    
-                    // Mettre à jour les compteurs de followers
-                    setFollowCounts({
-                        followers: followerCount.toString(),
-                        following: followingCount.toString()
-                    });
-
-                    // Suppression du bloc de vérification du statut de suivi
-                    // Par défaut, on considère que l'utilisateur n'est pas suivi
-                    setIsFollowing(false);
-                    
-                } else {
-                    setProfileError(profileResponse.message || "Impossible de charger ce profil");
-                }
-            } catch (err) {
-                setProfileError("Une erreur est survenue lors du chargement du profil");
-                console.error("Erreur lors du chargement du profil:", err);
-            } finally {
-                setProfileLoading(false);
-                setIsLoading(false);
+            if (profileResponse.success && profileResponse.data) {
+              // Continuer comme avant...
+              setUserProfile(profileResponse.data.user);
+              setUserPosts(profileResponse.data.posts || []);
+              setFollowCounts({
+                followers: profileResponse.data.followerCount.toString(),
+                following: profileResponse.data.followingCount.toString()
+              });
+              setIsFollowing(profileResponse.data.isFollowing);
+              
+              // Charger les followers et following via les nouvelles fonctions
+              try {
+                const [followersData, followingData] = await Promise.all([
+                  getFollowerByHashtag(hashtag),
+                  getFollowingByHashtag(hashtag)
+                ]);
+      
+                // Transformer les données pour l'affichage
+                const mappedFollowers = followersData.map(follower => ({
+                  id: follower._id,
+                  username: follower.username,
+                  hashtag: follower.hashtag,
+                  profileImage: follower.pdp || "https://randomuser.me/api/portraits/lego/1.jpg",
+                  premium: follower.premium || false,
+                  isFollowing: false // À compléter avec une vérification réelle si besoin
+                }));
+      
+                const mappedFollowing = followingData.map(follow => ({
+                  id: follow._id,
+                  username: follow.username,
+                  hashtag: follow.hashtag,
+                  profileImage: follow.pdp || "https://randomuser.me/api/portraits/lego/1.jpg",
+                  premium: follow.premium || false,
+                  isFollowing: false // À compléter avec une vérification réelle si besoin
+                }));
+      
+                setFollowers(mappedFollowers);
+                setFollowing(mappedFollowing);
+                
+              } catch (followErr) {
+                console.error("Erreur lors du chargement des abonnés/abonnements:", followErr);
+                setFollowers([]);
+                setFollowing([]);
+              }
+            } else {
+              setProfileError(profileResponse.message || "Impossible de charger ce profil");
             }
+          } catch (err) {
+            setProfileError("Une erreur est survenue lors du chargement du profil");
+            console.error("Erreur lors du chargement du profil:", err);
+          } finally {
+            setProfileLoading(false);
+            setIsLoading(false);
+            setFollowsLoading(false);
+          }
         };
-
+      
         loadUserProfile();
-    }, [hashtag]);
+      }, [hashtag]);
 
     // Gérer le suivi/désabonnement
     const handleToggleFollow = async () => {
@@ -219,11 +251,18 @@ export default function ProfileUser() {
                         </button>
                     </div>
                 ) : (
-                    <UserCard
-                        user={userCardData}
-                        isOtherUser={true}
-                        isAuthenticated={true}
-                    />
+<UserCard
+    user={userCardData}
+    isOtherUser={true}
+    isAuthenticated={true}
+    userFeatureProps={{
+        followersData: followers,
+        followingData: following,
+        followsLoading: followsLoading,
+        onFollowToggle: handleToggleFollow,
+        onUserClick: (userId, hashtag) => navigate(`/user/${hashtag}`)
+    }}
+/>
                 )}
 
                 <div className="flex flex-col md:flex-row">

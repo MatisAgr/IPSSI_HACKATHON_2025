@@ -65,7 +65,8 @@ export const getProfileByHashtag = async (hashtag: string): Promise<GetProfileWi
         user: data.data.user,
         posts: data.data.posts || [],
         followerCount: data.data.followerCount || 0,
-        followingCount: data.data.followingCount || 0
+        followingCount: data.data.followingCount || 0,
+        isFollowing: data.data.isFollowing || false,
       }
     };
   } catch (error) {

@@ -38,7 +38,7 @@ const Particle = ({ index }: { index: number }) => {
 };
 
 const FollowButton: React.FC<FollowButtonProps> = ({ 
-  isFollowing = false, 
+  isFollowing, 
   onToggle, 
   label 
 }) => {
