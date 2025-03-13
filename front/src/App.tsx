@@ -56,7 +56,7 @@ export default function App() {
 
             <Route path="/user/:hashtag" element={
               <ProtectedRoute>
-                {/* <ProfileUser /> */}
+                <ProfileUser />
               </ProtectedRoute>
             } />
 

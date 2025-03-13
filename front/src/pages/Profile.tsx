@@ -33,11 +33,11 @@ export default function Profile() {
         const diffDays = Math.round(diffMs / 86400000);
 
         if (diffMins < 60) {
-            return `il y a ${diffMins}m`;
+            return `${diffMins}m`;
         } else if (diffHours < 24) {
-            return `il y a ${diffHours}h`;
+            return `${diffHours}h`;
         } else if (diffDays < 7) {
-            return `il y a ${diffDays}j`;
+            return `${diffDays}j`;
         } else {
             return date.toLocaleDateString();
         }

@@ -6,12 +6,29 @@ import { UserCard } from '../components/Cards/UserCard';
 import { ProfileSidebar } from '../components/Menu/ProfileSidebar';
 import PostCard from '../components/Cards/PostCard';
 
-// Importer les APIs nécessaires
-// import { getUserProfile, UserProfileData } from '../callApi/CallApi_GetMyProfile';
-// import { getUserPosts } from '../callApi/CallApi_GetUserPosts';
-import { getFollowCount } from '../callApi/CallApi_CountFollow';
+// Import de la fonction API pour récupérer le profil par hashtag
+import { getProfileByHashtag, UserProfileWithPostsData } from '../callApi/CallApi_GetProfileByHashtag';
 import { toggleFollow } from '../callApi/CallApi_ToggleFollow';
-import { checkFollowStatus } from '../callApi/CallApi_CheckFollow';
+// Import supprimé: import { checkFollowStatus } from '../callApi/CallApi_CheckFollow';
+
+// Définition de l'interface UserProfileData si elle n'existe pas déjà
+interface UserProfileData {
+  id: string;
+  username: string;
+  hashtag: string;
+  bio?: string;
+  pdp?: string;
+  pdb?: string;
+  createdAt: string;
+  premium: boolean;
+}
+
+// Interface pour la réponse de toggleFollow
+interface ToggleFollowResponse {
+  success: boolean;
+  isFollowing?: boolean;
+  message?: string;
+}
 
 export default function ProfileUser() {
     const { hashtag } = useParams<{ hashtag: string }>();
@@ -29,7 +46,7 @@ export default function ProfileUser() {
     const [followCounts, setFollowCounts] = useState({ followers: '0', following: '0' });
     const [isFollowing, setIsFollowing] = useState(false);
 
-    // Formatage des timestamps et dates comme dans Profile.tsx
+    // Formatage des timestamps et dates
     const formatTimestamp = (date: Date): string => {
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
@@ -38,11 +55,11 @@ export default function ProfileUser() {
         const diffDays = Math.round(diffMs / 86400000);
 
         if (diffMins < 60) {
-            return `il y a ${diffMins}m`;
+            return `${diffMins}m`;
         } else if (diffHours < 24) {
-            return `il y a ${diffHours}h`;
+            return `${diffHours}h`;
         } else if (diffDays < 7) {
-            return `il y a ${diffDays}j`;
+            return `${diffDays}j`;
         } else {
             return date.toLocaleDateString();
         }
@@ -62,73 +79,46 @@ export default function ProfileUser() {
             
             setProfileLoading(true);
             setProfileError(null);
+            setIsLoading(true);
 
             try {
-                // Récupérer les données du profil par hashtag
-                const response = await getUserProfile(hashtag);
-                const followResponse = await getFollowCount(response.data?.id || '');
-                const followStatusResponse = await checkFollowStatus(response.data?.id || '');
+                // Récupérer les données du profil par hashtag avec notre nouvelle API
+                const profileResponse = await getProfileByHashtag(hashtag);
 
-                // Traitement du profil
-                if (response.success && response.data) {
-                    setUserProfile(response.data);
-                } else {
-                    setProfileError(response.message || "Impossible de charger ce profil");
-                    return;
-                }
-
-                // Traitement des compteurs de followers
-                if (followResponse.success && followResponse.data) {
+                if (profileResponse.success && profileResponse.data) {
+                    // Extraire les données du profil, des posts, et les compteurs de followers
+                    const { user, posts, followerCount, followingCount } = profileResponse.data;
+                    
+                    // Mettre à jour le profil utilisateur
+                    setUserProfile(user);
+                    
+                    // Mettre à jour les posts
+                    setUserPosts(posts || []);
+                    
+                    // Mettre à jour les compteurs de followers
                     setFollowCounts({
-                        followers: followResponse.data.followers.toString(),
-                        following: followResponse.data.following.toString()
+                        followers: followerCount.toString(),
+                        following: followingCount.toString()
                     });
-                }
 
-                // Vérifier si on suit déjà cet utilisateur
-                if (followStatusResponse.success) {
-                    setIsFollowing(followStatusResponse.isFollowing);
+                    // Suppression du bloc de vérification du statut de suivi
+                    // Par défaut, on considère que l'utilisateur n'est pas suivi
+                    setIsFollowing(false);
+                    
+                } else {
+                    setProfileError(profileResponse.message || "Impossible de charger ce profil");
                 }
-
             } catch (err) {
                 setProfileError("Une erreur est survenue lors du chargement du profil");
                 console.error("Erreur lors du chargement du profil:", err);
             } finally {
                 setProfileLoading(false);
+                setIsLoading(false);
             }
         };
 
         loadUserProfile();
     }, [hashtag]);
-
-    // Charger les posts de l'utilisateur
-    useEffect(() => {
-        const loadPosts = async () => {
-            if (!userProfile?.id) return;
-            
-            setIsLoading(true);
-            setError(null);
-
-            try {
-                const response = await getUserPosts(userProfile.id);
-
-                if (response.success) {
-                    setUserPosts(response.data || []);
-                } else {
-                    setError(response.message || "Une erreur est survenue lors du chargement des posts.");
-                }
-            } catch (err) {
-                setError("Impossible de récupérer les posts. Veuillez réessayer plus tard.");
-                console.error("Erreur lors du chargement des posts:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        if (userProfile) {
-            loadPosts();
-        }
-    }, [userProfile]);
 
     // Gérer le suivi/désabonnement
     const handleToggleFollow = async () => {
@@ -137,7 +127,8 @@ export default function ProfileUser() {
         try {
             const response = await toggleFollow(userProfile.id);
             
-            if (response.success) {
+            if (response.success && response.isFollowing !== undefined) {
+                // Mise à jour du statut de suivi en fonction de la réponse de l'API
                 setIsFollowing(response.isFollowing);
                 
                 // Mettre à jour le compteur de followers
@@ -145,6 +136,11 @@ export default function ProfileUser() {
                     ...prev,
                     followers: (parseInt(prev.followers) + (response.isFollowing ? 1 : -1)).toString()
                 }));
+                
+                // Afficher un message de succès (optionnel)
+                console.log(`${response.isFollowing ? 'Abonné' : 'Désabonné'} avec succès`);
+            } else {
+                console.error("Erreur lors du changement de statut:", response.message);
             }
         } catch (error) {
             console.error("Erreur lors du changement de statut de suivi:", error);
@@ -266,7 +262,7 @@ export default function ProfileUser() {
                                     </>
                                 )}
                                 
-                                {/* Les autres onglets comme dans Profile.tsx */}
+                                {/* Les autres onglets */}
                                 {(activeTab === 'replies' || activeTab === 'retweets' || activeTab === 'likes' || activeTab === 'bookmarks') && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
                                         <p>En cours de développement...</p>
