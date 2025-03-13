@@ -167,41 +167,48 @@ export default function EmotionTestPage() {
     setShowWebcam(false);
     setEmotionLoading(true);
     
-    try {
-      // MODIFICATION: Construction de l'URL avec les paramètres user_id et post_id
-      const userId = userProfile?.id || "unknown-user";
-      const postId = post?.id || "unknown-post";
-      const emotionUrl = `${EMOTION_API_URL}?user_id=${userId}&post_id=${postId}`;
-      
-      console.log("Récupération des émotions depuis:", emotionUrl);
-      const response = await axios.get(emotionUrl);
-      console.log("Réponse de l'API d'émotions:", response.data);
-      
-      if (response.status === 200 && response.data && response.data.length > 0) {
-        // Prendre le plus récent
-        const latestEmotion = response.data[0];
-        console.log("Émotion détectée:", latestEmotion);
-        setEmotion(latestEmotion);
-      } else {
-        throw new Error("Aucune donnée d'émotion trouvée");
+    // Ajouter un message intermédiaire
+    console.log("Attente de 2 secondes pour laisser à l'API le temps de traiter les images...");
+    
+    // Utiliser setTimeout pour ajouter un délai de 2 secondes
+    setTimeout(async () => {
+      try {
+        // Construction de l'URL avec les paramètres user_id et post_id
+        const userId = userProfile?.id || "unknown-user";
+        const postId = post?.id || "unknown-post";
+        const emotionUrl = `${EMOTION_API_URL}?user_id=${userId}&post_id=${postId}`;
+        
+        console.log("Récupération des émotions depuis:", emotionUrl);
+        const response = await axios.get(emotionUrl);
+        console.log("Réponse de l'API d'émotions:", response.data);
+        
+        if (response.status === 200 && response.data && response.data.length > 0) {
+          // Prendre le plus récent
+          const latestEmotion = response.data[0];
+          console.log("Émotion détectée:", latestEmotion);
+          setEmotion(latestEmotion);
+        } else {
+          throw new Error("Aucune donnée d'émotion trouvée");
+        }
+        
+        setTestCompleted(true);
+      } catch (err) {
+        console.error("Erreur lors de la récupération des émotions:", err);
+        setError("Impossible de récupérer les données d'émotion");
+        
+        // Fallback pour démo - émotion fictive
+        setEmotion({
+          user_id: userProfile?.id || "user-test",
+          post_id: post?.id || "post-test",
+          emotion: "neutral",
+          created_at: new Date().toISOString()
+        });
+        setTestCompleted(true);
+      } finally {
+        setEmotionLoading(false);
       }
-      
-      setTestCompleted(true);
-    } catch (err) {
-      console.error("Erreur lors de la récupération des émotions:", err);
-      setError("Impossible de récupérer les données d'émotion");
-      
-      // Fallback pour démo - émotion fictive
-      setEmotion({
-        user_id: userProfile?.id || "user-test",
-        post_id: post?.id || "post-test",
-        emotion: "neutral",
-        created_at: new Date().toISOString()
-      });
-      setTestCompleted(true);
-    } finally {
-      setEmotionLoading(false);
-    }
+    }, 2000); // Délai de 2000ms (2 secondes)
+    
   }, [post?.id, userProfile?.id]);
 
   return (
