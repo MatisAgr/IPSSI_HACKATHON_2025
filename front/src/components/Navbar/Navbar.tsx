@@ -23,12 +23,23 @@ const Navbar: React.FC = () => {
     const handleLogout = () => {
         // Supprimer le token des cookies
         Cookies.remove('token');
-        //disconect websocket
-        socket.disconnect();
+        
+        // Supprimer les données utilisateur du localStorage
+        localStorage.removeItem('user');
+        
+        // Informer le serveur avant de déconnecter
+        if (socket.connected) {
+            console.log('Déconnexion du WebSocket');
+            socket.emit('logout'); // Optionnel: envoyer un événement au serveur
+            socket.disconnect();
+        }
+        
         // Mettre à jour l'état
         setIsAuthenticated(false);
+        
         // Rediriger vers la page d'accueil
         navigate('/');
+        
         // Fermer le menu mobile si ouvert
         setIsOpen(false);
     };

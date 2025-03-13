@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../../callApi/CallApi_Login";
 import ForgetPasswordModal from "../Modals/ForgetPasswordModal";
@@ -40,13 +40,40 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       // Appel à l'API d'authentification
       const response = await loginUser({ email, password, remember: isRememberMeChecked });
       console.log("Login successful:", response);
-      socket.connect();
-      socket.on('connect', () => {
-      console.log('Socket connecté avec l\'id:', socket.id);
-      socket.emit('authenticate', response.data.id);
-      localStorage.setItem('user', JSON.stringify(response.data.id));
-      console.log('Socket authentifié pour l\'utilisateur', response.data.id); 
-      });
+      
+      // Stocker l'objet utilisateur complet, pas seulement l'ID
+      localStorage.setItem('user', JSON.stringify({
+        id: response.data.id,
+        // Ajoutez d'autres propriétés nécessaires de l'utilisateur ici
+        email: response.data.email,
+        // etc.
+      }));
+      
+      // Gérer la connexion socket avec nettoyage approprié
+      const handleSocketConnect = () => {
+        console.log('Socket connecté avec l\'id:', socket.id);
+        socket.emit('authenticate', response.data.id);
+        console.log('Socket authentifié pour l\'utilisateur', response.data.id);
+        
+        // Supprimer l'écouteur après utilisation pour éviter les doublons
+        socket.off('connect', handleSocketConnect);
+      };
+      
+      // Si déjà connecté, authentifier immédiatement
+      if (socket.connected) {
+        socket.emit('authenticate', response.data.id);
+        console.log('Socket déjà connecté, authentifié pour l\'utilisateur', response.data.id);
+      } else {
+        // Sinon, se connecter puis authentifier
+        socket.connect();
+        socket.on('connect', handleSocketConnect);
+      }
+      
+      // Si un callback est fourni, l'appeler
+      if (onLoginSuccess) {
+        onLoginSuccess(socket);
+      }
+      
       // Rediriger vers la page d'accueil ou une autre page protégée
       navigate("/");
     } catch (err) {
