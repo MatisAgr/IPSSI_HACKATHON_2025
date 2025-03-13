@@ -14,8 +14,7 @@ XMotion est une application web développée en groupe pour le HACKATHON 2025 de
 - [WebSockets](#websockets)
 - [Frontend](#frontend)
 - [Modèle d'IA](#modèle-d'ia)
-- [Contribuer](#contribuer)
-- [Licence](#licence)
+
 
 ## Technologies utilisées
 ### Backend
