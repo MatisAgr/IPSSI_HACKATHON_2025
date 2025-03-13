@@ -9,6 +9,14 @@ import UserActions from '../UserCardsItems/UserActions';
 import IconButton from '../Buttons/IconButton';
 import FollowButton from '../Buttons/FollowButton';
 
+interface UserFeatureProps {
+  followersData?: any[];
+  followingData?: any[];
+  followsLoading?: boolean;
+  onFollowToggle?: (userId: string) => void;
+  onUserClick?: (userId: string) => void;
+}
+
 interface UserCardProps {
   user: {
     username: string;
@@ -21,18 +29,26 @@ interface UserCardProps {
     coverImage: string;
     joinDate: string;
     isPremium?: boolean;
+    isFollowing?: boolean;
+    onFollowToggle?: () => void;
   };
   onSettingsClick?: () => void;
   isAuthenticated?: boolean;
+  isOtherUser?: boolean;
+  userFeaturesProps?: UserFeatureProps;
 }
 
 export const UserCard: React.FC<UserCardProps> = ({ 
   user, 
   onSettingsClick, 
-  isAuthenticated = true // TODO: faire la logique pour déterminer si l'utilisateur est authentifié
+  isAuthenticated = true,
+  isOtherUser = false,
+  userFeatureProps
 }) => {
 
-  console.log(user);
+  console.log("User data in UserCard:", user);
+  console.log("Follow status:", user.isFollowing);
+  console.log("Is other user profile:", isOtherUser);
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -41,18 +57,26 @@ export const UserCard: React.FC<UserCardProps> = ({
       {/* Section profil (photo + infos) */}
       <div className="p-4 flex flex-col md:flex-row gap-6 relative">
         {/* Photo de profil */}
-        <UserPicture profileImage={user.profileImage || "https://images.unsplash.com/photo-1741514229652-9baef370a916?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"} />
+        <UserPicture profileImage={user.profileImage || "https://randomuser.me/api/portraits/lego/1.jpg"} />
 
         {/* Informations utilisateur */}
-        <UserFeatures user={user} isPremium={user.isPremium || false} />
-
+        <UserFeatures 
+          user={user} 
+          isPremium={user.isPremium || false}
+          followersData={userFeatureProps?.followersData}
+          followingData={userFeatureProps?.followingData}
+          onFollowToggle={userFeatureProps?.onFollowToggle}
+          onUserClick={userFeatureProps?.onUserClick}
+        />
+        
         {/* Boutons d'action */}
         <UserActions>
-          {isAuthenticated ? (
+          {!isOtherUser ? (
+            // C'est mon profil - montrer les boutons de paramètres
             <>
               <IconButton
                 icon={<FaBell className="h-5 w-5" />}
-                onClick={() => alert("Notifications à compléter ")}
+                onClick={() => alert("Notifications à compléter")}
               />
               <IconButton
                 icon={<FaCog className="h-5 w-5" />}
@@ -60,8 +84,12 @@ export const UserCard: React.FC<UserCardProps> = ({
               />
             </>
           ) : (
+            // C'est le profil d'un autre utilisateur - montrer Follow et Message
             <>
-              <FollowButton />
+              <FollowButton 
+                isFollowing={user.isFollowing}
+                onToggle={user.onFollowToggle}
+              />
               <IconButton
                 icon={<FaEnvelope className="h-5 w-5" />}
                 onClick={() => alert("Message à compléter")}

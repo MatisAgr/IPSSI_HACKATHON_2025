@@ -468,14 +468,17 @@ export const getPostWithStats = async (req: AuthRequest, res: Response): Promise
 
 
 /**
- * Récupère les posts avec leurs statistiques avec pagination
+ * Récupère les posts avec leurs statistiques et l'état des interactions (like, retweet, signet) avec pagination
  * @route GET /api/post/stats?page=1
  * @access Private - Requiert authentification
  */
 export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    if (!req.user) {
-      console.log(`🔒 Accès refusé: utilisateur non connecté`);
+    // Utiliser req.user s'il existe déjà (middleware d'auth), sinon vérifier le token
+    const userId = req.user?._id || req.cookies?.token?.userId;
+
+    if (!userId) {
+      console.log(`🔒 Accès refusé: utilisateur non connecté ou token invalide`);
       res.status(401).json({
         success: false,
         message: "Non autorisé, veuillez vous connecter"
@@ -492,7 +495,7 @@ export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void
     const total = await Post.countDocuments();
 
     // Récupérer les posts paginés
-    const posts = await Post.find({ })
+    const posts = await Post.find({})
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -518,7 +521,7 @@ export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void
       return;
     }
 
-    // Récupérer les stats pour chaque post
+    // Récupérer les stats et l'état des interactions pour chaque post
     const postsWithStats = await Promise.all(posts.map(async (post) => {
       const [likeCount, retweetCount, signetCount, replyCount] = await Promise.all([
         Like.countDocuments({ post_id: post._id }),
@@ -527,13 +530,21 @@ export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void
         Reponse.countDocuments({ post_id: post._id })
       ]);
 
+      // Vérifier si l'utilisateur connecté a liké, retweeté ou signeté le post
+      const isLiked = !!(await Like.findOne({ post_id: post._id, user_id: userId }));
+      const isRetweeted = !!(await Retweet.findOne({ post_id: post._id, user_id: userId }));
+      const isBookmarked = !!(await Signet.findOne({ post_id: post._id, user_id: userId }));
+
       return {
         post: {
           _id: post._id,
           author: post.author,
           texte: post.texte,
           isThread: post.isThread,
-          createdAt: post.createdAt
+          createdAt: post.createdAt,
+          isLiked,
+          isRetweeted,
+          isBookmarked
         },
         stats: {
           likes: likeCount,
@@ -566,5 +577,29 @@ export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void
       message: "Erreur serveur lors de la récupération des posts",
       error: (error as Error).message
     });
+  }
+};
+
+export const updatePopularityScore = async (postId: string): Promise<void> => {
+  try {
+    // Récupérer les compteurs en parallèle
+    const [likeCount, retweetCount, replyCount] = await Promise.all([
+      Like.countDocuments({ post_id: postId }),
+      Retweet.countDocuments({ post_id: postId }),
+      Reponse.countDocuments({ post_id: postId })
+    ]);
+
+    // Calculer le nouveau score
+    const popularityScore = 
+      (likeCount * 1) + 
+      (retweetCount * 2) + 
+      (replyCount * 1.5);
+
+    // Mettre à jour le score dans la collection Post
+    await Post.findByIdAndUpdate(postId, { popularityScore });
+
+    console.log(`📊 Score de popularité mis à jour pour le post ${postId}: ${popularityScore}`);
+  } catch (error) {
+    console.error(`💥 Erreur lors de la mise à jour du score de popularité: ${error}`);
   }
 };

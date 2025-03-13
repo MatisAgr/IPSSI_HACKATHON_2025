@@ -28,7 +28,7 @@ export const getMyFollowing = async (): Promise<FollowingUser[]> => {
       throw new Error('Vous devez être connecté pour voir vos abonnements');
     }
     
-    const response = await fetch(`${API_URL}/api/user/follow/me/following`, {
+    const response = await fetch(`${API_URL}/user/follow/me/following`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

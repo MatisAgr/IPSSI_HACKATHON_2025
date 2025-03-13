@@ -200,7 +200,7 @@ export default function CreatePostModal({
                                 {/* Avatar de l'utilisateur */}
                                 <div className="flex-shrink-0">
                                     <img
-                                        src={userProfileImage}
+                                        src={userProfileImage || DEFAULT_AVATAR}
                                         alt={`${userName}'s avatar`}
                                         className="h-10 w-10 rounded-full object-cover border border-gray-200"
                                     />

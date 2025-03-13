@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import Post from "../models/postModel";
 import Retweet from "../models/retweetModel";
 import { IUser } from "../models/userModel";
+import { updatePopularityScore } from "./postController";
+import { sendNotification } from "../services/notificationService";
+
 
 interface AuthRequest extends Request {
   user?: IUser;
@@ -118,15 +121,32 @@ export const toggleRetweet = async (req: AuthRequest, res: Response): Promise<vo
         user_id: req.user._id,
         post_id: postId
       });
+      
+      await updatePopularityScore(postId);
 
       res.status(201).json({
         success: true,
         message: "Post retweeté",
         isRetweeted: true
       });
+      // Envoyer une notification lors d'un retweet
+            // Récupérer l'id de l'auteur du post
+            const postAuthorId = typeof post.author === 'object' ? post.author.toString() : post.author;
+      
+            // Envoyer une notification au post auteur
+            await sendNotification(
+              postAuthorId, // Destinataire de la notification
+              'retweet',     // Type de notification pour un like
+              postId,    // Id du post liké
+              String(req.user._id)  // L'utilisateur qui a effectué le like
+            );
+      
+
     } else {
       // Supprimer le retweet existant
       await Retweet.findByIdAndDelete(existingRetweet._id);
+      
+      await updatePopularityScore(postId);
 
       res.status(200).json({
         success: true,

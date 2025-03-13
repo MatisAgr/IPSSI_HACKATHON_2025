@@ -3,125 +3,6 @@ import { FaCalendarAlt, FaUserFriends, FaUsers } from 'react-icons/fa';
 import FollowListModal from '../Modals/FollowListModal';
 import PremiumIcon from '../../constants/PremiumIcon';
 
-export const mockFollowers: User[] = [
-  {
-    id: "1",
-    username: "lea_martin",
-    hashtag: "lea",
-    profileImage: "https://randomuser.me/api/portraits/women/12.jpg",
-    isFollowing: true,
-    premium: true
-  },
-  {
-    id: "2",
-    username: "thomas_dev",
-    hashtag: "thomas",
-    profileImage: "https://randomuser.me/api/portraits/men/32.jpg",
-    isFollowing: false
-  },
-  {
-    id: "3",
-    username: "sophie_b",
-    hashtag: "sophie",
-    profileImage: "https://randomuser.me/api/portraits/women/44.jpg",
-    isFollowing: true,
-    premium: true
-  },
-  {
-    id: "4",
-    username: "nico_music",
-    hashtag: "nico",
-    profileImage: "https://randomuser.me/api/portraits/men/22.jpg",
-    isFollowing: false
-  },
-  {
-    id: "5",
-    username: "emma_travel",
-    hashtag: "emma",
-    profileImage: "https://randomuser.me/api/portraits/women/33.jpg",
-    isFollowing: true
-  },
-  {
-    id: "6",
-    username: "hugo_tech",
-    hashtag: "hugo",
-    profileImage: "https://randomuser.me/api/portraits/men/55.jpg",
-    isFollowing: false,
-    premium: true
-  },
-  {
-    id: "7",
-    username: "camille_r",
-    hashtag: "camille",
-    profileImage: "https://randomuser.me/api/portraits/women/67.jpg",
-    isFollowing: true
-  }
-];
-
-// Données de test pour les abonnements (following)
-export const mockFollowing: User[] = [
-  {
-    id: "11",
-    username: "alex_m",
-    hashtag: "alex",
-    profileImage: "https://randomuser.me/api/portraits/men/11.jpg",
-    isFollowing: true,
-    premium: true
-  },
-  {
-    id: "12",
-    username: "julie_art",
-    hashtag: "julie",
-    profileImage: "https://randomuser.me/api/portraits/women/23.jpg",
-    isFollowing: true
-  },
-  {
-    id: "13",
-    username: "ant_fournier",
-    hashtag: "ant",
-    profileImage: "https://randomuser.me/api/portraits/men/42.jpg",
-    isFollowing: true
-  },
-  {
-    id: "14",
-    username: "marine_g",
-    hashtag: "marine",
-    profileImage: "https://randomuser.me/api/portraits/women/51.jpg",
-    isFollowing: true,
-    premium: true
-  },
-  {
-    id: "15",
-    username: "paul_d",
-    hashtag: "paul",
-    profileImage: "https://randomuser.me/api/portraits/men/77.jpg",
-    isFollowing: true
-  },
-  {
-    id: "16",
-    username: "clara_simon",
-    hashtag: "clara",
-    profileImage: "https://randomuser.me/api/portraits/women/89.jpg",
-    isFollowing: true
-  },
-  {
-    id: "17",
-    username: "max_l",
-    hashtag: "max",
-    profileImage: "https://randomuser.me/api/portraits/men/91.jpg",
-    isFollowing: true,
-    premium: true
-  },
-  {
-    id: "18",
-    username: "ines_b",
-    hashtag: "ines",
-    profileImage: "https://randomuser.me/api/portraits/women/63.jpg",
-    isFollowing: true
-  }
-];
-
-// Interface User commune pour éviter les incohérences
 interface User {
   id: string;
   username: string;
@@ -143,15 +24,17 @@ interface UserFeaturesProps {
   isPremium: boolean;
   followersData?: User[];
   followingData?: User[];
+  followsLoading?: boolean;
   onFollowToggle?: (userId: string) => void;
-  onUserClick?: (userId: string) => void;
+  onUserClick?: (userId: string, hashtag: string) => void;
 }
 
 const UserFeatures: React.FC<UserFeaturesProps> = ({ 
   user, 
   isPremium, 
-  followersData = mockFollowers, 
-  followingData = mockFollowing,
+  followersData = [],
+  followingData = [],
+  followsLoading = false,
   onFollowToggle,
   onUserClick
 }) => {
@@ -214,6 +97,7 @@ const UserFeatures: React.FC<UserFeaturesProps> = ({
         users={followersData}
         onFollowToggle={onFollowToggle}
         onUserClick={onUserClick}
+        isLoading={followsLoading}
       />
 
       {/* Modale pour les abonnements */}
@@ -224,6 +108,7 @@ const UserFeatures: React.FC<UserFeaturesProps> = ({
         users={followingData}
         onFollowToggle={onFollowToggle}
         onUserClick={onUserClick}
+        isLoading={followsLoading}
       />
     </>
   );

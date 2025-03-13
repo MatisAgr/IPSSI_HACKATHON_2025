@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FiMessageCircle,
   FiRepeat,
@@ -33,6 +34,7 @@ interface PostCardProps {
   isRetweeted?: boolean;
   isBookmarked?: boolean;
   isPreview?: boolean;
+  onUserClick?: (username: string) => void;
 }
 
 // Fonction pour formater le texte avec les liens, hashtags et mentions
@@ -74,7 +76,8 @@ const formatText = (text: string) => {
 
     // Vérifier si c'est un hashtag
     else if (part.match(hashtagRegex)) {
-      return <a key={index} href={`/hashtag/${part.substring(1)}`} className="text-blue-500 hover:underline">{part}</a>;
+      const tag = part.substring(1);
+      return <a key={index} href={`/feed/search?q=${encodeURIComponent(tag)}&type=tag`} className="text-blue-500 hover:underline">{part}</a>;
     }
 
     // Vérifier si c'est une mention
@@ -99,8 +102,10 @@ export default function PostCard({
   isLiked = false,
   isRetweeted = false,
   isBookmarked = false,
-  isPreview = false
+  isPreview = false,
+  onUserClick
 }: PostCardProps) {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(isLiked);
   const [likes, setLikes] = useState(stats.likes);
   const [retweeted, setRetweeted] = useState(isRetweeted);
@@ -146,7 +151,18 @@ export default function PostCard({
     }
   };
 
+  const handleUserClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (isPreview) return;
+    if (onUserClick) {
+      onUserClick(user.username);
+    } else {
+      navigate(`/user/${user.username}`);
+    }
+  };
+
   const previewClass = isPreview ? "pointer-events-none opacity-75" : "";
+  const userClickClass = isPreview ? "" : "cursor-pointer hover:underline";
 
   return (
     <div className={`bg-white border border-gray-200 rounded-xl p-4 mb-4 ${isPreview ? '' : 'hover:bg-gray-50'} transition-colors`}>
@@ -156,20 +172,30 @@ export default function PostCard({
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
             <img
-              src={user.avatar}
+              src={user.avatar || "https://randomuser.me/api/portraits/lego/1.jpg"}
               alt={`${user.name}'s avatar`}
               className="h-10 w-10 rounded-full object-cover border border-gray-200"
             />
           </div>
           <div>
             <div className="flex items-center">
-              <h4 className="font-bold text-gray-900 mr-1">{user.name}</h4>
+            <h4 
+                className={`font-bold text-gray-900 mr-1 ${userClickClass}`}
+                onClick={!isPreview ? handleUserClick : undefined}
+              >
+                {user.name}
+              </h4>
               {user.premium && (
                 <PremiumIcon />
               )}
-              <span className="text-gray-500 ml-2 font-normal">@{user.username}</span>
+              <span 
+                className={`text-gray-500 ml-2 font-normal ${userClickClass}`}
+                onClick={!isPreview ? handleUserClick : undefined}
+              >
+                @{user.username}
+              </span>
               <span className="text-gray-400 mx-1">·</span>
-              <span className="text-gray-500 text-sm">{timestamp}</span>
+              <span className="text-gray-500 text-sm">il y a {timestamp}</span>
             </div>
           </div>
         </div>

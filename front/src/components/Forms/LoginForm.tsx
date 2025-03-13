@@ -1,13 +1,16 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../../callApi/CallApi_Login";
 import ForgetPasswordModal from "../Modals/ForgetPasswordModal";
 import FadeIn from "../Animations/FadeIn";
+import { socket } from "../../utils/socket";
 // Import des icônes
 import { FiMail, FiLock, FiAlertCircle, FiLogIn, FiUserPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { io, Socket } from "socket.io-client";
 
 interface LoginFormProps {
-  onLoginSuccess?: () => void;
+  // Vous pouvez transmettre un callback pour récupérer l'instance du socket globalement (optionnel)
+  onLoginSuccess?: (socket: Socket) => void;
 }
 
 const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
@@ -29,24 +32,50 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       return;
     }
 
-    // Reset error state
+    // Réinitialiser l'erreur
     setError("");
     setLoading(true);
 
     try {
       // Appel à l'API d'authentification
       const response = await loginUser({ email, password, remember: isRememberMeChecked });
-
-      // Notification de succès
-      if (onLoginSuccess) onLoginSuccess();
-
-      // Rediriger vers la page d'accueil
-      console.log("email: ", email);
-      console.log("password: ", password);
-      console.log("isRememberMeChecked: ", isRememberMeChecked);
-      console.log(response);
-      navigate("/");
-
+      console.log("Login successful:", response);
+      
+      // Stocker l'objet utilisateur complet, pas seulement l'ID
+      localStorage.setItem('user', JSON.stringify({
+        id: response.data.id,
+        // Ajoutez d'autres propriétés nécessaires de l'utilisateur ici
+        email: response.data.email,
+        // etc.
+      }));
+      
+      // Gérer la connexion socket avec nettoyage approprié
+      const handleSocketConnect = () => {
+        console.log('Socket connecté avec l\'id:', socket.id);
+        socket.emit('authenticate', response.data.id);
+        console.log('Socket authentifié pour l\'utilisateur', response.data.id);
+        
+        // Supprimer l'écouteur après utilisation pour éviter les doublons
+        socket.off('connect', handleSocketConnect);
+      };
+      
+      // Si déjà connecté, authentifier immédiatement
+      if (socket.connected) {
+        socket.emit('authenticate', response.data.id);
+        console.log('Socket déjà connecté, authentifié pour l\'utilisateur', response.data.id);
+      } else {
+        // Sinon, se connecter puis authentifier
+        socket.connect();
+        socket.on('connect', handleSocketConnect);
+      }
+      
+      // Si un callback est fourni, l'appeler
+      if (onLoginSuccess) {
+        onLoginSuccess(socket);
+      }
+      
+      // Rediriger vers la page d'accueil ou une autre page protégée
+      navigate("/feed");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur s'est produite");
     } finally {
@@ -150,14 +179,24 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 cursor-pointer flex items-center justify-center ${loading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
+            className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-200 cursor-pointer flex items-center justify-center ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
             {loading ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  ></path>
                 </svg>
                 Connexion en cours...
               </>
@@ -174,7 +213,10 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       <div className="text-center mt-6">
         <p className="text-sm text-gray-600">
           Pas encore de compte ?{" "}
-          <Link to="/register" className="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center mt-2">
+          <Link
+            to="/register"
+            className="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center mt-2"
+          >
             <FiUserPlus className="mr-1" />
             S'inscrire
           </Link>
@@ -182,10 +224,7 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       </div>
 
       {/* Modal de réinitialisation de mot de passe */}
-      <ForgetPasswordModal
-        isOpen={isForgetPasswordModalOpen}
-        onClose={() => setIsForgetPasswordModalOpen(false)}
-      />
+      <ForgetPasswordModal isOpen={isForgetPasswordModalOpen} onClose={() => setIsForgetPasswordModalOpen(false)} />
     </div>
   );
 };

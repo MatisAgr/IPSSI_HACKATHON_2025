@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import Post from "../models/postModel";
 import Like from "../models/likeModel";
 import { IUser } from "../models/userModel";
+import { updatePopularityScore } from "./postController";
+import { sendNotification } from "../services/notificationService";
+
 
 interface AuthRequest extends Request {
   user?: IUser;
@@ -119,8 +122,22 @@ export const toggleLike = async (req: AuthRequest, res: Response): Promise<void>
         post_id: postId
       });
 
+      // Mettre à jour le score après l'ajout du like
+      await updatePopularityScore(postId);
+
       // Mettre à jour le compteur de likes du post
       await Post.findByIdAndUpdate(postId, { $inc: { likesCount: 1 } });
+
+      // Récupérer l'id de l'auteur du post
+      const postAuthorId = typeof post.author === 'object' ? post.author.toString() : post.author;
+
+      // Envoyer une notification au post auteur
+      await sendNotification(
+        postAuthorId, // Destinataire de la notification
+        'like',     // Type de notification pour un like
+        postId,    // Id du post liké
+        String(req.user._id)  // L'utilisateur qui a effectué le like
+      );
 
       res.status(201).json({
         success: true,
@@ -130,6 +147,9 @@ export const toggleLike = async (req: AuthRequest, res: Response): Promise<void>
     } else {
       // Supprimer le like existant
       await Like.findByIdAndDelete(existingLike._id);
+
+      // Mettre à jour le score après le retrait du like
+      await updatePopularityScore(postId);
 
       // Décrémenter le compteur de likes du post
       await Post.findByIdAndUpdate(postId, { $inc: { likesCount: -1 } });

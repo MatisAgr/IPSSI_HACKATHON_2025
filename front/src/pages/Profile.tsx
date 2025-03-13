@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 import CreatePostButton from '../components/Buttons/CreatePostButton';
 import { UserCard } from '../components/Cards/UserCard';
@@ -11,7 +12,13 @@ import { getMyPosts, PostData } from '../callApi/CallApi_GetMyPosts';
 import { getMyProfile, UserProfileData } from '../callApi/CallApi_GetMyProfile';
 import { getMyFollowCount, FollowCountResponse } from '../callApi/CallApi_CountMyFollow';
 
+import { getMyFollowers } from '../callApi/CallApi_GetFollower';
+import { getMyFollowing } from '../callApi/CallApi_GetFollowing';
+import { toggleFollow } from '../callApi/CallApi_ToggleFollow';
+
+
 export default function Profile() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('posts');
     const [userPosts, setUserPosts] = useState<PostData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -24,6 +31,11 @@ export default function Profile() {
     const [followCounts, setFollowCounts] = useState({ followers: '0', following: '0' });
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
+    const [followers, setFollowers] = useState<any[]>([]);
+    const [following, setFollowing] = useState<any[]>([]);
+    const [followsLoading, setFollowsLoading] = useState(true);
+
+
     // Fonction pour formater les timestamps
     const formatTimestamp = (date: Date): string => {
         const now = new Date();
@@ -33,11 +45,11 @@ export default function Profile() {
         const diffDays = Math.round(diffMs / 86400000);
 
         if (diffMins < 60) {
-            return `il y a ${diffMins}m`;
+            return `${diffMins}m`;
         } else if (diffHours < 24) {
-            return `il y a ${diffHours}h`;
+            return `${diffHours}h`;
         } else if (diffDays < 7) {
-            return `il y a ${diffDays}j`;
+            return `${diffDays}j`;
         } else {
             return date.toLocaleDateString();
         }
@@ -51,33 +63,80 @@ export default function Profile() {
         return `${month} ${year}`;
     };
 
+    const handleUserClick = (userId: string, hashtag: string) => {
+        console.log(`Navigation vers le profil de ${hashtag} (ID: ${userId})`);
+        navigate(`/user/${hashtag}`);
+    };
+
     // Charger le profil utilisateur
     useEffect(() => {
         const loadUserProfile = async () => {
             setProfileLoading(true);
             setProfileError(null);
+            setFollowsLoading(true);
 
             try {
-                const response = await getMyProfile();
-                const followResponse = await getMyFollowCount();
+                // Charger le profil et les compteurs simultanément
+                const [profileResponse, followCountResponse] = await Promise.all([
+                    getMyProfile(),
+                    getMyFollowCount()
+                ]);
 
-                // verif profile api
-                if (response.success && response.data) {
-                    setUserProfile(response.data);
-                    console.log("Profile:" + response.data);
+                // Traiter la réponse du profil
+                if (profileResponse.success && profileResponse.data) {
+                    setUserProfile(profileResponse.data);
+                    console.log("Profile chargé:", profileResponse.data);
                 } else {
-                    setProfileError(response.message || "Impossible de charger votre profil");
+                    setProfileError(profileResponse.message || "Impossible de charger votre profil");
                 }
 
-                // verif follow api
-                if (followResponse.success && followResponse.data) {
+                // Traiter la réponse des compteurs de follow
+                if (followCountResponse.success && followCountResponse.data) {
                     setFollowCounts({
-                        followers: followResponse.data.followers.toString(),
-                        following: followResponse.data.following.toString()
+                        followers: followCountResponse.data.followers.toString(),
+                        following: followCountResponse.data.following.toString()
                     });
-                    console.log("Compteurs de follow récupérés:", followResponse.data);
-                } else {
-                    console.error("Erreur lors de la récupération des compteurs de follow:", followResponse.message);
+                    console.log("Compteurs de follow récupérés:", followCountResponse.data);
+                }
+
+                // Charger les données d'abonnés et d'abonnements
+                try {
+                    const [followersData, followingData] = await Promise.all([
+                        getMyFollowers(),
+                        getMyFollowing()
+                    ]);
+
+                    // Transformer les données pour correspondre à l'interface User
+                    const mappedFollowers = followersData.map(follower => ({
+                        id: follower._id,
+                        username: follower.username,
+                        hashtag: follower.hashtag,
+                        profileImage: follower.pdp || "https://randomuser.me/api/portraits/lego/1.jpg",
+                        premium: follower.premium || false,
+                        isFollowing: true // Par défaut, nos abonnés peuvent nous suivre
+                    }));
+
+                    const mappedFollowing = followingData.map(follow => ({
+                        id: follow._id,
+                        username: follow.username,
+                        hashtag: follow.hashtag,
+                        profileImage: follow.pdp || "https://randomuser.me/api/portraits/lego/1.jpg",
+                        premium: follow.premium || false,
+                        isFollowing: true // Par défaut, nous suivons nos abonnements
+                    }));
+
+                    setFollowers(mappedFollowers);
+                    setFollowing(mappedFollowing);
+                    console.log("Abonnés chargés:", mappedFollowers.length);
+                    console.log("Abonnements chargés:", mappedFollowing.length);
+                    
+                } catch (followError) {
+                    console.error("Erreur lors du chargement des abonnés/abonnements:", followError);
+                    // Utiliser les données mock en cas d'erreur
+                    setFollowers([]);
+                    setFollowing([]);
+                } finally {
+                    setFollowsLoading(false);
                 }
 
             } catch (err) {
@@ -119,6 +178,36 @@ export default function Profile() {
 
     const handleProfileUpdate = (updatedData: Partial<UserProfileData>) => {
         setUserProfile(prev => prev ? { ...prev, ...updatedData } : null);
+    };
+
+    const handleFollowToggle = async (userId: string) => {
+        try {
+            console.log("Toggle follow pour l'utilisateur:", userId);
+            const response = await toggleFollow(userId);
+            
+            if (response.success) {
+                // Mettre à jour l'état du suivi dans les listes
+                setFollowers(prev => 
+                    prev.map(user => 
+                        user.id === userId 
+                            ? { ...user, isFollowing: !user.isFollowing }
+                            : user
+                    )
+                );
+                
+                setFollowing(prev => 
+                    prev.map(user => 
+                        user.id === userId 
+                            ? { ...user, isFollowing: !user.isFollowing }
+                            : user
+                    )
+                );
+                
+                console.log(`Statut de suivi mis à jour pour ${userId}:`, response.isFollowing);
+            }
+        } catch (error) {
+            console.error("Erreur lors du toggle follow:", error);
+        }
     };
 
     const userCardData = userProfile ? {
@@ -166,7 +255,7 @@ export default function Profile() {
         <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-blue-400 to-purple-100">
             <CreatePostButton user={userCardData} />
             <div className="flex-1 max-w-6xl mx-auto bg-white shadow-sm">
-                {profileLoading ? (
+            {profileLoading ? (
                     <div className="h-64 flex items-center justify-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
@@ -186,6 +275,13 @@ export default function Profile() {
                     <UserCard
                         user={userCardData}
                         onSettingsClick={() => setIsUpdateModalOpen(true)}
+                        userFeatureProps={{
+                            followersData: followers,
+                            followingData: following,
+                            followsLoading: followsLoading,
+                            onFollowToggle: handleFollowToggle,
+                            onUserClick: (userId, hashtag) => handleUserClick(userId, hashtag)
+                        }}
                     />
                 )}
 
