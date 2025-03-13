@@ -74,7 +74,8 @@ const formatText = (text: string) => {
 
     // Vérifier si c'est un hashtag
     else if (part.match(hashtagRegex)) {
-      return <a key={index} href={`/hashtag/${part.substring(1)}`} className="text-blue-500 hover:underline">{part}</a>;
+      const tag = part.substring(1);
+      return <a key={index} href={`/feed/search?q=${encodeURIComponent(tag)}&type=tag`} className="text-blue-500 hover:underline">{part}</a>;
     }
 
     // Vérifier si c'est une mention
