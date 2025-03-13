@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import APP_NAME from "../../constants/AppName";
 import { motion, AnimatePresence } from "framer-motion";
 import Cookies from 'js-cookie';
+import { socket } from "../../utils/socket";
 
 const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -22,6 +23,8 @@ const Navbar: React.FC = () => {
     const handleLogout = () => {
         // Supprimer le token des cookies
         Cookies.remove('token');
+        //disconect websocket
+        socket.disconnect();
         // Mettre à jour l'état
         setIsAuthenticated(false);
         // Rediriger vers la page d'accueil

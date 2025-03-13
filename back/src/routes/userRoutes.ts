@@ -11,7 +11,7 @@ import {
   getMyFollowing
 } from '../controllers/followController';
 
-import { getMyProfile, getUserById, searchUsers, updateMyProfile } from '../controllers/userController';
+import { getMyProfile, getUserByHashtag, getUserById, searchUsers, updateMyProfile } from '../controllers/userController';
 
 
 import { protect } from '../middleware/authMiddleware';
@@ -34,5 +34,5 @@ router.get('/me', protect, getMyProfile);
 router.get('/search', protect, searchUsers);
 router.get('/:userId', protect, getUserById);
 router.put('/me', protect, updateMyProfile);
-
+router.get('/profile/:hashtag', protect, getUserByHashtag);
 export default router;

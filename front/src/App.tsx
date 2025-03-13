@@ -23,15 +23,20 @@ import Profile from "./pages/Profile";
 import ProfileUser from "./pages/ProfileUser";
 
 import Page404 from "./pages/Page404";
+import Notification from "./components/Notification";
+import useSocketAuth from './hooks/useSocketAuth';
 import Admin from "./pages/Admin";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
 export default function App() {
+  useSocketAuth();
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Notification />
+
       <div className="flex flex-col flex-grow">
         <ScrollToTop />
         <main className="flex-grow">
