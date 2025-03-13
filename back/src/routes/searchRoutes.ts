@@ -1,5 +1,5 @@
 import express from 'express';
-import { searchUserByHashtag, searchPostsByTag, searchPostsByKeyword} from '../controllers/searchController';
+import { searchUserByHashtag, searchPostsByTag, searchPostsByKeyword, searchPostsByDateOrder} from '../controllers/searchController';
 
 const router = express.Router();
 
@@ -7,6 +7,6 @@ const router = express.Router();
 router.get('/user/:hashtag', searchUserByHashtag);
 router.get('/posts/:tag', searchPostsByTag);
 router.get('/posts/keyword/:keyword', searchPostsByKeyword);
-
+router.get('/posts/date/:order', searchPostsByDateOrder);
 
 export default router;
