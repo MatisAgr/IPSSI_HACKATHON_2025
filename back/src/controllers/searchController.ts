@@ -131,30 +131,69 @@ export const searchPostsByKeyword = async (req: Request, res: Response): Promise
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const searchPattern = new RegExp(keyword, 'i');
+    // Diviser la phrase en mots et filtrer les mots vides
+    const keywords = keyword
+      .split(' ')
+      .filter(word => word.length > 1)
+      .join(' ');
 
-    const total = await Post.countDocuments({ 
-      texte: searchPattern
-    });
-
-    if (total === 0) {
-      res.status(404).json({
+    if (!keywords) {
+      res.status(400).json({
         success: false,
-        message: `Aucun post trouvé contenant "${keyword}"`
+        message: "Veuillez fournir des mots-clés valides pour la recherche"
       });
       return;
     }
 
-    const posts = await Post.find({ texte: searchPattern })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('author', 'username hashtag pdp');
+    // Utiliser la recherche full-text de MongoDB
+    const searchQuery = {
+      $text: {
+        $search: keywords,
+        $caseSensitive: false,
+        $diacriticSensitive: false
+      }
+    };
 
+    const total = await Post.countDocuments(searchQuery);
+
+    if (total === 0) {
+      res.status(404).json({
+        success: false,
+        message: `Aucun post trouvé contenant les mots "${keyword}"`
+      });
+      return;
+    }
+
+    // Récupérer les posts avec leur score de pertinence
+    const posts = await Post.find(searchQuery, {
+      score: { $meta: 'textScore' } 
+    })
+    .sort({
+      score: { $meta: 'textScore' }, 
+      createdAt: -1 
+    })
+    .skip(skip)
+    .limit(limit)
+    .populate('author', 'username hashtag pdp');
+
+    // Formatter les résultats avec les scores
+    const formattedPosts = posts.map(post => ({
+      _id: post._id,
+      author: post.author,
+      texte: post.texte,
+      isThread: post.isThread,
+      createdAt: post.createdAt,
+    }));
+
+    console.log(`🔍 ${total} posts trouvés pour la recherche "${keyword}"`);
     res.status(200).json({
       success: true,
       data: {
-        posts,
+        posts: formattedPosts,
+        searchInfo: {
+          originalQuery: keyword,
+          processedKeywords: keywords
+        },
         pagination: {
           page,
           limit,
@@ -170,6 +209,64 @@ export const searchPostsByKeyword = async (req: Request, res: Response): Promise
     res.status(500).json({
       success: false,
       message: "Erreur serveur lors de la recherche",
+      error: (error as Error).message
+    });
+  }
+};
+
+/**
+ * Recherche des posts triés par date
+ * @route GET /api/search/posts/date?order=desc|asc
+ * @access Public
+ */
+export const searchPostsByDateOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { order = 'desc' } = req.query;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const sortOrder = order === 'asc' ? 1 : -1;
+    const orderText = order === 'asc' ? 'ancien' : 'récent';
+
+    const total = await Post.countDocuments();
+
+    const posts = await Post.find()
+      .sort({ createdAt: sortOrder })
+      .skip(skip)
+      .limit(limit)
+      .populate('author', 'username hashtag pdp')
+      .select('author texte isThread createdAt');
+
+    const formattedPosts = posts.map(post => ({
+      _id: post._id,
+      author: post.author,
+      texte: post.texte,
+      isThread: post.isThread,
+      createdAt: post.createdAt
+    }));
+
+    console.log(`📅 ${total} posts triés du plus ${orderText} au moins ${orderText}`);
+    res.status(200).json({
+      success: true,
+      data: {
+        posts: formattedPosts,
+        sortOrder: order,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+          hasMore: page * limit < total
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du tri des posts par date:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors du tri",
       error: (error as Error).message
     });
   }
