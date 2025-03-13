@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
 import Post from "../models/postModel";
 import { IUser } from "../models/userModel";
+import Like from "../models/likeModel";
+import Retweet from "../models/retweetModel";
+import Signet from "../models/signetModel";
+import Reponse from "../models/reponseModel";
+
 
 // Interface pour étendre Request avec l'utilisateur
 interface AuthRequest extends Request {
@@ -280,10 +285,13 @@ export const getMyPosts = async (req: AuthRequest, res: Response): Promise<void>
       .sort({ createdAt: -1 })
       .populate({
         path: 'author',
-        select: 'username hashtag pdp'
+        select: 'username hashtag pdp premium'
       })
       .select('_id texte createdAt media tags mentions');
+
     
+      console.log(posts);
+
     // Logging du résultat
     if (posts.length === 0) {
       console.log(`📭 Aucun post trouvé pour l'utilisateur ${req.user.username}`);
@@ -355,4 +363,208 @@ export const getPostsByTag = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-// export const getPostsPaginated = async (req: AuthRequest, res: Response): Promise<void> => {
+
+/**
+ * Récupère les posts avec leurs statistiques avec pagination
+ * @route GET /api/post/stats?page=1
+ * @access Private - Requiert authentification
+ */
+export const getPostWithStats = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      console.log(`🔒 Accès refusé: utilisateur non connecté`);
+      res.status(401).json({
+        success: false,
+        message: "Non autorisé, veuillez vous connecter"
+      });
+      return;
+    }
+
+    // Paramètres de pagination
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 5; // Taille fixe de 5 posts par page
+    const skip = (page - 1) * limit;
+
+    // Compter le total des posts
+    const total = await Post.countDocuments();
+
+    // Récupérer les posts paginés
+    const posts = await Post.find({ author: req.user._id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('author', 'username hashtag pdp')
+      .select('author texte isThread createdAt');
+
+    if (posts.length === 0) {
+      console.log(`📭 Aucun post trouvé`);
+      res.status(200).json({
+        success: true,
+        message: "Aucun post trouvé",
+        data: {
+          posts: [],
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+            hasMore: false
+          }
+        }
+      });
+      return;
+    }
+
+    // Récupérer les stats pour chaque post
+    const postsWithStats = await Promise.all(posts.map(async (post) => {
+      const [likeCount, retweetCount, signetCount, replyCount] = await Promise.all([
+        Like.countDocuments({ post_id: post._id }),
+        Retweet.countDocuments({ post_id: post._id }),
+        Signet.countDocuments({ post_id: post._id }),
+        Reponse.countDocuments({ post_id: post._id })
+      ]);
+
+      return {
+        post: {
+          _id: post._id,
+          author: post.author,
+          texte: post.texte,
+          isThread: post.isThread,
+          createdAt: post.createdAt
+        },
+        stats: {
+          likes: likeCount,
+          retweets: retweetCount,
+          signets: signetCount,
+          replies: replyCount
+        }
+      };
+    }));
+
+    console.log(`✅ ${posts.length} posts récupérés avec leurs stats (Page ${page})`);
+    res.status(200).json({
+      success: true,
+      data: {
+        posts: postsWithStats,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+          hasMore: page * limit < total
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error(`💥 Erreur lors de la récupération des posts et stats: ${(error as Error).message}`);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la récupération des posts",
+      error: (error as Error).message
+    });
+  }
+};
+
+
+/**
+ * Récupère les posts avec leurs statistiques avec pagination
+ * @route GET /api/post/stats?page=1
+ * @access Private - Requiert authentification
+ */
+export const getAllPosts = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      console.log(`🔒 Accès refusé: utilisateur non connecté`);
+      res.status(401).json({
+        success: false,
+        message: "Non autorisé, veuillez vous connecter"
+      });
+      return;
+    }
+
+    // Paramètres de pagination
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 5; // Taille fixe de 5 posts par page
+    const skip = (page - 1) * limit;
+
+    // Compter le total des posts
+    const total = await Post.countDocuments();
+
+    // Récupérer les posts paginés
+    const posts = await Post.find({ })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('author', 'username hashtag pdp premium')
+      .select('author texte isThread createdAt');
+
+    if (posts.length === 0) {
+      console.log(`📭 Aucun post trouvé`);
+      res.status(200).json({
+        success: true,
+        message: "Aucun post trouvé",
+        data: {
+          posts: [],
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+            hasMore: false
+          }
+        }
+      });
+      return;
+    }
+
+    // Récupérer les stats pour chaque post
+    const postsWithStats = await Promise.all(posts.map(async (post) => {
+      const [likeCount, retweetCount, signetCount, replyCount] = await Promise.all([
+        Like.countDocuments({ post_id: post._id }),
+        Retweet.countDocuments({ post_id: post._id }),
+        Signet.countDocuments({ post_id: post._id }),
+        Reponse.countDocuments({ post_id: post._id })
+      ]);
+
+      return {
+        post: {
+          _id: post._id,
+          author: post.author,
+          texte: post.texte,
+          isThread: post.isThread,
+          createdAt: post.createdAt
+        },
+        stats: {
+          likes: likeCount,
+          retweets: retweetCount,
+          signets: signetCount,
+          replies: replyCount
+        }
+      };
+    }));
+
+    console.log(`✅ ${posts.length} posts récupérés avec leurs stats (Page ${page})`);
+    res.status(200).json({
+      success: true,
+      data: {
+        posts: postsWithStats,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+          hasMore: page * limit < total
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error(`💥 Erreur lors de la récupération des posts et stats: ${(error as Error).message}`);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur lors de la récupération des posts",
+      error: (error as Error).message
+    });
+  }
+};

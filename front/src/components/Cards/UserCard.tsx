@@ -11,8 +11,9 @@ import FollowButton from '../Buttons/FollowButton';
 
 interface UserCardProps {
   user: {
-    name: string;
     username: string;
+    name: string;
+    hashtag?: string;
     bio: string;
     followers: string;
     following: string;
@@ -30,6 +31,9 @@ export const UserCard: React.FC<UserCardProps> = ({
   onSettingsClick, 
   isAuthenticated = true // TODO: faire la logique pour déterminer si l'utilisateur est authentifié
 }) => {
+
+  console.log(user);
+
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <ProfileBanner coverImage={user.coverImage || "https://ralfvanveen.com/wp-content/uploads/2021/06/Placeholder-_-Begrippenlijst.svg"} />
