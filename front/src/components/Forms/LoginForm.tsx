@@ -75,7 +75,7 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       }
       
       // Rediriger vers la page d'accueil ou une autre page protégée
-      navigate("/");
+      navigate("/feed");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur s'est produite");
     } finally {
