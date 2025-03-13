@@ -1,7 +1,7 @@
 # ![XMotion](./front/src/assets/logo.PNG)
 
 ## Description
-XMotion est une application web développée en groupe pour le HACKATHON 2025 de l'école IPSSI. Elle permet aux utilisateurs de publier des posts, d'interagir avec eux (likes, retweets, réponses), de rechercher des posts et des utilisateurs, et de voir les tendances actuelles. En plus de ces fonctionnalités, les utilisateurs peuvent suivre d'autres utilisateurs et voir la liste de leurs abonnements et abonnés. L'application comprend un backend construit avec Node.js, Express et MongoDB, ainsi qu'un frontend développé avec React, Tailwind et Vite.
+XMotion est une application web développée en groupe pour le HACKATHON 2025 de l'école IPSSI. Elle permet aux utilisateurs de publier des posts, d'interagir avec eux (likes, retweets, réponses), de rechercher des posts et des utilisateurs, et de voir les tendances actuelles. En plus de ces fonctionnalités, les utilisateurs peuvent suivre d'autres utilisateurs et voir la liste de leurs abonnements et abonnés. L'application comprend un backend construit avec Node.js, Express et MongoDB, ainsi qu'un frontend développé avec React, Tailwind et Vite. XMotion utilise également un modèle d'IA pour détecter les émotions des utilisateurs grâce à un réseau de neurones pour la reconnaissance faciale. L'application utilise ce modèle en faisant un appel API pour analyser les émotions des utilisateurs. À l'avenir, ce modèle pourra être utilisé pour recommander des posts en fonction des émotions détectées.
 
 ![Interface de XMotion](./front/src/assets/image.png)
 
@@ -13,6 +13,7 @@ XMotion est une application web développée en groupe pour le HACKATHON 2025 de
 - [API Endpoints](#api-endpoints)
 - [WebSockets](#websockets)
 - [Frontend](#frontend)
+- [Modèle d'IA](#modèle-d'ia)
 - [Contribuer](#contribuer)
 - [Licence](#licence)
 
@@ -33,7 +34,7 @@ XMotion est une application web développée en groupe pour le HACKATHON 2025 de
 1. Clonez le dépôt :
     ```bash
     git clone https://github.com/MatisAgr/IPSSI_HACKATHON_2025.git
-    cd hackathon-2025
+    cd IPSSI_HACKATHON_2025
     ```
 
 2. Installez les dépendances pour le backend et le frontend :
@@ -52,7 +53,16 @@ XMotion est une application web développée en groupe pour le HACKATHON 2025 de
     JWT_SECRET=votre_secret_jwt
     ```
 
-2. Frontend : Créez un fichier `.env` dans le dossier `front` en vous basant sur `.env.example`.
+2. Frontend : Renommez le fichier `.env.example` en `.env` dans le dossier `front`.et lancez la commande suivante :
+    ```bash
+    make reload
+    ```
+
+3. Modèle d'IA: Renommez le fichier `.env.example` en `.env et lancez la commande suivante à la racine du projet :
+    ```bash
+    make reload
+    ```
+
 
 ## Démarrage
 1. Démarrez le serveur backend en mode développement :
@@ -66,6 +76,7 @@ XMotion est une application web développée en groupe pour le HACKATHON 2025 de
     cd front
     npm run dev
     ```
+
 
 ## API Endpoints
 Les routes API sont définies dans le dossier `routes` du backend. Elles couvrent les fonctionnalités suivantes :
@@ -88,7 +99,8 @@ Le frontend de l'application est développé avec React, Vite et Tailwind. Il co
 - **Profil utilisateur** : Les utilisateurs peuvent voir et éditer leur profil, ainsi que voir les profils des autres utilisateurs.
 - **Interface utilisateur réactive** : Utilisation de Tailwind pour un design moderne et réactif.
 
+## Modèle d'IA
+XMotion utilise un modèle d'IA pour détecter les émotions des utilisateurs grâce à un réseau de neurones pour la reconnaissance faciale. L'application utilise ce modèle en faisant un appel API pour analyser les émotions des utilisateurs. À l'avenir, ce modèle pourra être utilisé pour recommander des posts en fonction des émotions détectées. Le modèle d'IA est disponible dans un dépôt séparé.
 
-
-
+Lien du dépôt du modèle d'IA : [Modèle d'IA](https://github.com/ThomasPerez91/Xmotion-api.git)
 
