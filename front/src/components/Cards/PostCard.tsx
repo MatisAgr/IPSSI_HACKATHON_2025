@@ -157,7 +157,7 @@ export default function PostCard({
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
             <img
-              src={user.avatar}
+              src={user.avatar || "https://randomuser.me/api/portraits/lego/1.jpg"}
               alt={`${user.name}'s avatar`}
               className="h-10 w-10 rounded-full object-cover border border-gray-200"
             />

@@ -155,7 +155,7 @@ export default function FeedTag() {
                     id: user._id || `user-${Date.now()}-${Math.random()}`,
                     name: user.username || 'Utilisateur',
                     username: user.hashtag || 'user',
-                    avatar: user.pdp || `https://randomuser.me/api/portraits/lego/${Math.floor(Math.random() * 8) + 1}.jpg`,
+                    avatar: user.pdp || `https://randomuser.me/api/portraits/lego/1.jpg`,
                     premium: user.premium || false
                 }));
 
