@@ -9,6 +9,7 @@ import reponseRoutes from './reponseRoutes';
 import searchRoutes from './searchRoutes';
 import userRoutes from "./userRoutes";
 import notificationRoutes from "./notificationRoutes";
+import trendingRoutes from "./trendingRoutes";
 
 
 const router = express.Router();
@@ -23,5 +24,6 @@ router.use("/reponse", reponseRoutes);
 router.use("/search", searchRoutes);
 router.use("/user", userRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/trending", trendingRoutes);
 
 export default router;
