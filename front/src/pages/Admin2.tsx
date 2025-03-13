@@ -104,8 +104,11 @@ export default function EmotionTestPage() {
         
         // Charger des posts
         try {
-          // Charger des posts - utiliser page 1 au lieu de 10
-          const postsResponse = await getPosts(1);
+          // MODIFICATION: Utiliser une page aléatoire entre 1 et 10
+          const randomPage = Math.floor(Math.random() * 10) + 1;
+          console.log("Chargement des posts - page aléatoire:", randomPage);
+          
+          const postsResponse = await getPosts(randomPage);
           console.log("Posts response:", postsResponse);
           
           if (postsResponse.success && postsResponse.data && postsResponse.data.posts && postsResponse.data.posts.length > 0) {
@@ -114,7 +117,6 @@ export default function EmotionTestPage() {
             const randomIndex = Math.floor(Math.random() * availablePosts.length);
             const randomPost = availablePosts[randomIndex];
             
-            // Le reste du code reste identique
             setPost({
               id: randomPost.post._id,
               user: {
