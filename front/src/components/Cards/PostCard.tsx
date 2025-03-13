@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FiMessageCircle,
   FiRepeat,
@@ -33,6 +34,7 @@ interface PostCardProps {
   isRetweeted?: boolean;
   isBookmarked?: boolean;
   isPreview?: boolean;
+  onUserClick?: (username: string) => void;
 }
 
 // Fonction pour formater le texte avec les liens, hashtags et mentions
@@ -100,8 +102,10 @@ export default function PostCard({
   isLiked = false,
   isRetweeted = false,
   isBookmarked = false,
-  isPreview = false
+  isPreview = false,
+  onUserClick
 }: PostCardProps) {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(isLiked);
   const [likes, setLikes] = useState(stats.likes);
   const [retweeted, setRetweeted] = useState(isRetweeted);
@@ -147,7 +151,18 @@ export default function PostCard({
     }
   };
 
+  const handleUserClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (isPreview) return;
+    if (onUserClick) {
+      onUserClick(user.username);
+    } else {
+      navigate(`/user/${user.username}`);
+    }
+  };
+
   const previewClass = isPreview ? "pointer-events-none opacity-75" : "";
+  const userClickClass = isPreview ? "" : "cursor-pointer hover:underline";
 
   return (
     <div className={`bg-white border border-gray-200 rounded-xl p-4 mb-4 ${isPreview ? '' : 'hover:bg-gray-50'} transition-colors`}>
@@ -164,11 +179,21 @@ export default function PostCard({
           </div>
           <div>
             <div className="flex items-center">
-              <h4 className="font-bold text-gray-900 mr-1">{user.name}</h4>
+            <h4 
+                className={`font-bold text-gray-900 mr-1 ${userClickClass}`}
+                onClick={!isPreview ? handleUserClick : undefined}
+              >
+                {user.name}
+              </h4>
               {user.premium && (
                 <PremiumIcon />
               )}
-              <span className="text-gray-500 ml-2 font-normal">@{user.username}</span>
+              <span 
+                className={`text-gray-500 ml-2 font-normal ${userClickClass}`}
+                onClick={!isPreview ? handleUserClick : undefined}
+              >
+                @{user.username}
+              </span>
               <span className="text-gray-400 mx-1">·</span>
               <span className="text-gray-500 text-sm">il y a {timestamp}</span>
             </div>
