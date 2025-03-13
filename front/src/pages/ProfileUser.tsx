@@ -1,30 +1,52 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import CreatePostButton from '../components/Buttons/CreatePostButton';
 import { UserCard } from '../components/Cards/UserCard';
 import { ProfileSidebar } from '../components/Menu/ProfileSidebar';
 import PostCard from '../components/Cards/PostCard';
-import UpdateUserModal from '../components/Modals/UpdateUserModal';
 
-import { getMyPosts, PostData } from '../callApi/CallApi_GetMyPosts';
-import { getMyProfile, UserProfileData } from '../callApi/CallApi_GetMyProfile';
-import { getMyFollowCount, FollowCountResponse } from '../callApi/CallApi_CountMyFollow';
+// Import de la fonction API pour récupérer le profil par hashtag
+import { getProfileByHashtag, UserProfileWithPostsData } from '../callApi/CallApi_GetProfileByHashtag';
+import { toggleFollow } from '../callApi/CallApi_ToggleFollow';
+// Import supprimé: import { checkFollowStatus } from '../callApi/CallApi_CheckFollow';
 
-export default function Profile() {
+// Définition de l'interface UserProfileData si elle n'existe pas déjà
+interface UserProfileData {
+  id: string;
+  username: string;
+  hashtag: string;
+  bio?: string;
+  pdp?: string;
+  pdb?: string;
+  createdAt: string;
+  premium: boolean;
+}
+
+// Interface pour la réponse de toggleFollow
+interface ToggleFollowResponse {
+  success: boolean;
+  isFollowing?: boolean;
+  message?: string;
+}
+
+export default function ProfileUser() {
+    const { hashtag } = useParams<{ hashtag: string }>();
+    const navigate = useNavigate();
+    
     const [activeTab, setActiveTab] = useState('posts');
-    const [userPosts, setUserPosts] = useState<PostData[]>([]);
+    const [userPosts, setUserPosts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Nouvel état pour les données de profil
+    // États pour les données de profil
     const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [profileError, setProfileError] = useState<string | null>(null);
     const [followCounts, setFollowCounts] = useState({ followers: '0', following: '0' });
-    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false);
 
-    // Fonction pour formater les timestamps
+    // Formatage des timestamps et dates
     const formatTimestamp = (date: Date): string => {
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
@@ -43,7 +65,6 @@ export default function Profile() {
         }
     };
 
-    // Formatage de la date d'inscription
     const formatJoinDate = (dateString: string): string => {
         const date = new Date(dateString);
         const month = date.toLocaleDateString('fr-FR', { month: 'long' });
@@ -51,91 +72,98 @@ export default function Profile() {
         return `${month} ${year}`;
     };
 
-    // Charger le profil utilisateur
+    // Charger le profil utilisateur en fonction du hashtag
     useEffect(() => {
         const loadUserProfile = async () => {
+            if (!hashtag) return;
+            
             setProfileLoading(true);
             setProfileError(null);
+            setIsLoading(true);
 
             try {
-                const response = await getMyProfile();
-                const followResponse = await getMyFollowCount();
+                // Récupérer les données du profil par hashtag avec notre nouvelle API
+                const profileResponse = await getProfileByHashtag(hashtag);
 
-                // verif profile api
-                if (response.success && response.data) {
-                    setUserProfile(response.data);
-                    console.log("Profile:" + response.data);
-                } else {
-                    setProfileError(response.message || "Impossible de charger votre profil");
-                }
-
-                // verif follow api
-                if (followResponse.success && followResponse.data) {
+                if (profileResponse.success && profileResponse.data) {
+                    // Extraire les données du profil, des posts, et les compteurs de followers
+                    const { user, posts, followerCount, followingCount } = profileResponse.data;
+                    
+                    // Mettre à jour le profil utilisateur
+                    setUserProfile(user);
+                    
+                    // Mettre à jour les posts
+                    setUserPosts(posts || []);
+                    
+                    // Mettre à jour les compteurs de followers
                     setFollowCounts({
-                        followers: followResponse.data.followers.toString(),
-                        following: followResponse.data.following.toString()
+                        followers: followerCount.toString(),
+                        following: followingCount.toString()
                     });
-                    console.log("Compteurs de follow récupérés:", followResponse.data);
-                } else {
-                    console.error("Erreur lors de la récupération des compteurs de follow:", followResponse.message);
-                }
 
+                    // Suppression du bloc de vérification du statut de suivi
+                    // Par défaut, on considère que l'utilisateur n'est pas suivi
+                    setIsFollowing(false);
+                    
+                } else {
+                    setProfileError(profileResponse.message || "Impossible de charger ce profil");
+                }
             } catch (err) {
-                setProfileError("Une erreur est survenue lors du chargement de votre profil");
+                setProfileError("Une erreur est survenue lors du chargement du profil");
                 console.error("Erreur lors du chargement du profil:", err);
             } finally {
                 setProfileLoading(false);
-            }
-        };
-
-        loadUserProfile();
-    }, []);
-
-    // Charger les posts de l'utilisateur au chargement du composant
-    useEffect(() => {
-        const loadPosts = async () => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
-                const response = await getMyPosts();
-                console.log("Posts:" + response.data);
-
-                if (response.success) {
-                    setUserPosts(response.data);
-                } else {
-                    setError(response.message || "Une erreur est survenue lors du chargement de vos posts.");
-                }
-            } catch (err) {
-                setError("Impossible de récupérer vos posts. Veuillez réessayer plus tard.");
-                console.error("Erreur lors du chargement des posts:", err);
-            } finally {
                 setIsLoading(false);
             }
         };
 
-        loadPosts();
-    }, []);
+        loadUserProfile();
+    }, [hashtag]);
 
-    const handleProfileUpdate = (updatedData: Partial<UserProfileData>) => {
-        setUserProfile(prev => prev ? { ...prev, ...updatedData } : null);
+    // Gérer le suivi/désabonnement
+    const handleToggleFollow = async () => {
+        if (!userProfile?.id) return;
+
+        try {
+            const response = await toggleFollow(userProfile.id);
+            
+            if (response.success && response.isFollowing !== undefined) {
+                // Mise à jour du statut de suivi en fonction de la réponse de l'API
+                setIsFollowing(response.isFollowing);
+                
+                // Mettre à jour le compteur de followers
+                setFollowCounts(prev => ({
+                    ...prev,
+                    followers: (parseInt(prev.followers) + (response.isFollowing ? 1 : -1)).toString()
+                }));
+                
+                // Afficher un message de succès (optionnel)
+                console.log(`${response.isFollowing ? 'Abonné' : 'Désabonné'} avec succès`);
+            } else {
+                console.error("Erreur lors du changement de statut:", response.message);
+            }
+        } catch (error) {
+            console.error("Erreur lors du changement de statut de suivi:", error);
+        }
     };
 
+    // Préparer les données pour UserCard
     const userCardData = userProfile ? {
         name: userProfile.username,
         username: "@" + userProfile.hashtag,
         bio: userProfile.bio || "Aucune biographie",
-        followers: followCounts.followers || 'n/a',
-        following: followCounts.following || 'n/a',   
+        followers: followCounts.followers || '0',
+        following: followCounts.following || '0',   
         profileImage: userProfile.pdp || "",
         coverImage: userProfile.pdb || "",
         joinDate: formatJoinDate(userProfile.createdAt),
-        isPremium: userProfile.premium
+        isPremium: userProfile.premium,
+        isFollowing: isFollowing,
+        onFollowToggle: handleToggleFollow
     } : {
-        // Données pendant le chargement
         name: 'Chargement...',
         username: '@...',
-        bio: 'Chargement de votre profil...',
+        bio: 'Chargement du profil...',
         followers: '0',
         following: '0',
         profileImage: '',
@@ -143,28 +171,27 @@ export default function Profile() {
         joinDate: ''
     };
 
-    // Formater les posts pour composant PostCard
+    // Formater les posts pour PostCard
     const formattedPosts = userPosts.map(post => ({
-        id: post.id,
+        id: post.id || post._id,
         user: {
-            name: post.author.username,
-            username: post.author.username,
-            avatar: post.author.pdp || "",
-            premium: false
+            name: userProfile?.username || 'Utilisateur',
+            username: userProfile?.hashtag || '',
+            avatar: userProfile?.pdp || "",
+            premium: userProfile?.premium || false
         },
-        content: post.texte,
-        image: post.media?.type === 'image' ? post.media.url : undefined,
+        content: post.texte || post.content || '',
+        image: post.media?.url || post.image || undefined,
         timestamp: formatTimestamp(new Date(post.createdAt)),
         stats: {
-            comments: 0,
-            retweets: 0,
-            likes: 0
+            comments: post.stats?.replies || 0,
+            retweets: post.stats?.retweets || 0,
+            likes: post.stats?.likes || 0
         }
     }));
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-blue-400 to-purple-100">
-            <CreatePostButton user={userCardData} />
             <div className="flex-1 max-w-6xl mx-auto bg-white shadow-sm">
                 {profileLoading ? (
                     <div className="h-64 flex items-center justify-center">
@@ -174,18 +201,16 @@ export default function Profile() {
                     <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg m-4">
                         <p>{profileError}</p>
                         <button
-                            onClick={() => getMyProfile().then(res => {
-                                if (res.success && res.data) setUserProfile(res.data);
-                            })}
+                            onClick={() => navigate(-1)}
                             className="mt-2 px-4 py-2 bg-red-100 hover:bg-red-200 rounded-md text-sm"
                         >
-                            Réessayer
+                            Retour
                         </button>
                     </div>
                 ) : (
                     <UserCard
                         user={userCardData}
-                        onSettingsClick={() => setIsUpdateModalOpen(true)}
+                        isOtherUser={true}
                     />
                 )}
 
@@ -214,18 +239,10 @@ export default function Profile() {
                                         ) : error ? (
                                             <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg">
                                                 <p>{error}</p>
-                                                <button
-                                                    onClick={() => getMyPosts().then(res => {
-                                                        if (res.success) setUserPosts(res.data);
-                                                    })}
-                                                    className="mt-2 px-4 py-2 bg-red-100 hover:bg-red-200 rounded-md text-sm"
-                                                >
-                                                    Réessayer
-                                                </button>
                                             </div>
                                         ) : formattedPosts.length === 0 ? (
                                             <div className="bg-gray-50 p-8 rounded-lg text-center">
-                                                <p className="text-gray-600 mb-4">Vous n'avez pas encore publié de posts.</p>
+                                                <p className="text-gray-600 mb-4">Cet utilisateur n'a pas encore publié de posts.</p>
                                             </div>
                                         ) : (
                                             <>
@@ -233,17 +250,7 @@ export default function Profile() {
                                                     <PostCard
                                                         id={post.id}
                                                         key={post.id}
-                                                        user={userProfile ? {
-                                                            name: userProfile.username,
-                                                            username: userProfile.hashtag,
-                                                            avatar: userProfile.pdp || "",
-                                                            premium: userProfile.premium
-                                                        } : {
-                                                            name: 'Chargement...',
-                                                            username: '...',
-                                                            avatar: '',
-                                                            premium: false
-                                                        }}
+                                                        user={post.user}
                                                         content={post.content}
                                                         image={post.image}
                                                         timestamp={post.timestamp}
@@ -254,41 +261,17 @@ export default function Profile() {
                                         )}
                                     </>
                                 )}
-
-                                {activeTab === 'replies' && (
+                                
+                                {/* Les autres onglets */}
+                                {(activeTab === 'replies' || activeTab === 'retweets' || activeTab === 'likes' || activeTab === 'bookmarks') && (
                                     <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>En cours de dev...</p>
-                                    </div>
-                                )}
-
-                                {activeTab === 'retweets' && (
-                                    <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>En cours de dev...</p>
-                                    </div>
-                                )}
-
-                                {activeTab === 'likes' && (
-                                    <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>En cours de dev...</p>
-                                    </div>
-                                )}
-
-                                {activeTab === 'bookmarks' && (
-                                    <div className="bg-gray-100 rounded-lg p-4 shadow-sm">
-                                        <p>En cours de dev...</p>
+                                        <p>En cours de développement...</p>
                                     </div>
                                 )}
                             </motion.div>
                         </AnimatePresence>
                     </div>
                 </div>
-
-                <UpdateUserModal
-                    isOpen={isUpdateModalOpen}
-                    onClose={() => setIsUpdateModalOpen(false)}
-                    onUpdate={handleProfileUpdate}
-                    userData={userProfile}
-                />
             </div>
         </div>
     );

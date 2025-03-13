@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiArrowRight, FiTrendingUp, FiBell,
   FiMessageSquare, FiBookmark, FiSearch,
-  FiUsers
+  FiUsers, FiChevronDown
 } from 'react-icons/fi';
 import InfiniteScroll from '../utils/InfiniteScroll';
 import PostCard from '../components/Cards/PostCard';
@@ -36,6 +37,13 @@ export default function Feed() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  // États pour la recherche
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('user'); // 'user', 'post', 'tag'
+  const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
 
   // État pour l'initialisation - utile pour les animations retardées
   const [isInitialized, setIsInitialized] = useState(false);
@@ -92,34 +100,34 @@ export default function Feed() {
 
   const loadMorePosts = useCallback(async () => {
     if (isLoading || loadingRef.current || !hasMore) return;
-  
+
     setIsLoading(true);
     loadingRef.current = true;
-  
+
     try {
       console.log(`🔄 Chargement des posts - page ${page}`);
-      
+
       const response = await getPosts(page);
       console.log("Réponse complète:", response);
-      
+
       if (!response.success) {
         console.error('❌ Erreur lors du chargement des posts:', response.message);
         setHasMore(false);
         return;
       }
-      
+
       // CORRECTION: La structure est response.data.posts et non response.data?.posts
       const postsArray = response.data?.posts || [];
       console.log("Posts array:", postsArray);
-      
+
       if (postsArray.length === 0) {
         console.log('📭 Aucun nouveau post trouvé');
         setHasMore(false);
         return;
       }
-      
+
       console.log(`✅ ${postsArray.length} posts récupérés`);
-      
+
       const formattedPosts = postsArray.map(({ post, stats }: any) => ({
         id: post._id || `post-${Date.now()}-${Math.random()}`,
         user: {
@@ -137,20 +145,20 @@ export default function Feed() {
           likes: stats.likes || 0,
           bookmarks: stats.signets || 0
         },
-        isLiked: post.isLiked || false, 
+        isLiked: post.isLiked || false,
         isRetweeted: post.isRetweeted || false,
         isBookmarked: post.isBookmarked || false
       }));
-      
+
       setPosts(prevPosts => [...prevPosts, ...formattedPosts]);
       setPage(prevPage => prevPage + 1);
-      
+
       // CORRECTION: Utiliser la bonne structure pour la pagination
       if (response.data?.pagination) {
         setHasMore(response.data.pagination.hasMore);
         console.log(`📄 Pagination: page ${response.data.pagination.page}/${response.data.pagination.pages}, hasMore: ${response.data.pagination.hasMore}`);
       }
-      
+
     } catch (error) {
       console.error("❌ Erreur lors du chargement des posts:", error);
       setHasMore(false);
@@ -166,17 +174,34 @@ export default function Feed() {
   useEffect(() => {
     const initData = async () => {
       await loadUserProfile();
-      
+
       // Rester synchrone et éviter les multiples appels
       if (!loadingRef.current) {
         await loadMorePosts();
         setTimeout(() => setIsInitialized(true), 200);
       }
     };
-    
+
     initData();
     // Note importante: ne pas inclure loadMorePosts dans les dépendances
   }, [loadUserProfile]);
+
+  // Fonction pour gérer la recherche
+  const handleSearch = (query: string, type: string) => {
+    console.log(`Recherche de type ${type}: "${query}"`);
+    
+    if (type === 'tag' && query) {
+      const cleanTag = query.startsWith('#') ? query.substring(1) : query;
+    navigate(`/feed/search?q=${encodeURIComponent(cleanTag)}&type=tag`);
+    } else if (type === 'user' && query) {
+      const cleanUser = query.startsWith('@') ? query.substring(1) : query;
+      navigate(`/user/${cleanUser}`);
+    } else if (type === 'post' && query) {
+      navigate(`/feed/search?q=${encodeURIComponent(query)}&type=post`);
+    } else {
+      navigate(`/feed/search?q=${encodeURIComponent(query)}&type=${type}`);
+    }
+  }
 
   return (
     <LazyMotion features={domAnimation}>
@@ -195,7 +220,7 @@ export default function Feed() {
                   transition={{ delay: 0.1, type: "spring", stiffness: 50 }}
                 >
                   <h2 className="text-xl font-bold text-indigo-900 mb-4 px-3">Explorer</h2>
-            
+
                   <nav className="space-y-1">
                     <div className="flex items-center gap-3 p-3 bg-indigo-100 bg-opacity-50 rounded-xl text-indigo-900 font-medium">
                       <FiArrowRight className="w-5 h-5" />
@@ -219,7 +244,7 @@ export default function Feed() {
                     </div>
                   </nav>
                 </motion.div>
-            
+
                 {/* Qui suivre section - sans sticky individuel et dans le même conteneur */}
                 {isInitialized && (
                   <motion.div
@@ -249,15 +274,15 @@ export default function Feed() {
                 )}
               </div>
             </div>
-            
+
             {/* Flux principal - uniquement scrollable */}
             <div className="col-span-1 md:col-span-2 lg:col-span-3 h-full pt-4 ">
               <h1 className="sr-only">Flux d'actualités</h1>
-            
+
               <div
                 className="h-[calc(100vh)] overflow-auto pb-20"
               >
-                
+
                 <InfiniteScroll
                   loadMore={loadMorePosts}
                   hasMore={hasMore}
@@ -300,25 +325,95 @@ export default function Feed() {
               </div>
             </div>
 
-            {/* Sidebar droite - masquée sur mobile et tablette - chargement différé */}
+            {/* Sidebar droite - masquée sur mobile et tablette - chargement lazy */}
             <div className="hidden lg:block lg:col-span-2 h-full pb-6">
               <div className="sticky top-24 space-y-6 max-h-[calc(100vh-120px)]">
                 {/* Recherche - haute priorité */}
                 <motion.div
-                  className="bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl border border-white border-opacity-20 overflow-hidden shadow-lg"
+                  className="bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl border border-white border-opacity-20 overflow-visible shadow-lg relative z-[100]" // Augmentation du z-index à 100 et position relative
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15, type: "spring", stiffness: 50 }}
                 >
                   <div className="p-4">
+                    {/* Champ de recherche */}
                     <div className="flex items-center bg-white bg-opacity-30 rounded-full px-4 py-2">
                       <FiSearch className="w-5 h-5 text-gray-500" />
                       <input
                         type="text"
-                        placeholder="Rechercher"
-                        className="w-full bg-transparent border-0 outline-none focus:ring-0 px-3 text-indigo-900 placeholder-gray-500"
+                        placeholder={`Rechercher ${searchType === 'user' ? 'un utilisateur' :
+                            searchType === 'post' ? 'un post' :
+                              'un hashtag'
+                          }`}
+                        className="flex-1 bg-transparent border-0 outline-none focus:ring-0 px-3 text-indigo-900 placeholder-gray-500"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                       />
                     </div>
+
+                    {/* Sélecteur de type de recherche */}
+                    <div className="mt-3 flex justify-between items-center relative">
+                      <div className="text-xs text-indigo-900 opacity-70">Type de recherche :</div>
+                      <div className="relative">
+                        <div
+                          className="flex items-center gap-1 text-indigo-600 cursor-pointer select-none bg-white bg-opacity-30 rounded-full px-3 py-1"
+                          onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}
+                        >
+                          <span className="text-sm font-medium">
+                            {searchType === 'user' ? 'Utilisateur' :
+                              searchType === 'post' ? 'Post' :
+                                'Hashtag'}
+                          </span>
+                          <FiChevronDown className={`w-4 h-4 transition-transform ${isSearchTypeOpen ? 'rotate-180' : ''}`} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Menu déroulant - déplacé en dehors des divs imbriquées pour améliorer le contexte d'empilement */}
+                    {isSearchTypeOpen && (
+                      <div className="absolute right-4 mt-2 w-36 py-1 bg-white rounded-lg shadow-xl z-[999]"> {/* z-index très élevé et shadow-xl */}
+                        <div
+                          className={`px-4 py-2 text-sm cursor-pointer hover:bg-indigo-50 ${searchType === 'user' ? 'bg-indigo-100 text-indigo-800' : ''}`}
+                          onClick={() => {
+                            setSearchType('user');
+                            setIsSearchTypeOpen(false);
+                          }}
+                        >
+                          Utilisateur
+                        </div>
+                        <div
+                          className={`px-4 py-2 text-sm cursor-pointer hover:bg-indigo-50 ${searchType === 'post' ? 'bg-indigo-100 text-indigo-800' : ''}`}
+                          onClick={() => {
+                            setSearchType('post');
+                            setIsSearchTypeOpen(false);
+                          }}
+                        >
+                          Post
+                        </div>
+                        <div
+                          className={`px-4 py-2 text-sm cursor-pointer hover:bg-indigo-50 ${searchType === 'tag' ? 'bg-indigo-100 text-indigo-800' : ''}`}
+                          onClick={() => {
+                            setSearchType('tag');
+                            setIsSearchTypeOpen(false);
+                          }}
+                        >
+                          Hashtag
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bouton de recherche */}
+                    {searchQuery.length > 0 && (
+                      <button
+                        className="mt-3 w-full py-2 px-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-full transition-colors cursor-pointer"
+                        onClick={() => {
+                          console.log(`Recherche de type ${searchType}: "${searchQuery}"`);
+                          handleSearch(searchQuery, searchType);
+                        }}
+                      >
+                        Rechercher
+                      </button>
+                    )}
                   </div>
                 </motion.div>
 

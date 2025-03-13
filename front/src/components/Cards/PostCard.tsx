@@ -169,7 +169,7 @@ export default function PostCard({
               )}
               <span className="text-gray-500 ml-2 font-normal">@{user.username}</span>
               <span className="text-gray-400 mx-1">·</span>
-              <span className="text-gray-500 text-sm">{timestamp}</span>
+              <span className="text-gray-500 text-sm">il y a {timestamp}</span>
             </div>
           </div>
         </div>
