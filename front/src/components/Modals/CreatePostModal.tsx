@@ -200,7 +200,7 @@ export default function CreatePostModal({
                                 {/* Avatar de l'utilisateur */}
                                 <div className="flex-shrink-0">
                                     <img
-                                        src={userProfileImage}
+                                        src={userProfileImage || DEFAULT_AVATAR}
                                         alt={`${userName}'s avatar`}
                                         className="h-10 w-10 rounded-full object-cover border border-gray-200"
                                     />
@@ -313,11 +313,12 @@ export default function CreatePostModal({
                                 transition={{ duration: 0.3 }}
                             >
                                 <PostCard
+                                    id="preview-post"
                                     user={{
                                         name: userName,
                                         username: userUsername,
                                         avatar: userProfileImage,
-                                        verified: userVerified
+                                        premium: userVerified
                                     }}
                                     content={content}
                                     timestamp="À l'instant"

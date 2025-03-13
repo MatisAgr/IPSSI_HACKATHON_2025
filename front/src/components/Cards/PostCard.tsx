@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FiMessageCircle,
   FiRepeat,
@@ -7,14 +8,19 @@ import {
   FiMoreHorizontal,
   FiShare
 } from 'react-icons/fi';
+import PremiumIcon from '../../constants/PremiumIcon';
 import ActionButton from '../Buttons/ActionButton';
+import { toggleLike } from '../../callApi/CallApi_ToggleLike';
+import { toggleRetweet } from '../../callApi/CallApi_ToggleRT';
+import { toggleSignet } from '../../callApi/CallApi_ToggleSignet';
 
 interface PostCardProps {
+  id: string;
   user: {
     name: string;
     username: string;
     avatar: string;
-    verified?: boolean;
+    premium?: boolean;
   };
   content: string;
   image?: string;
@@ -28,6 +34,7 @@ interface PostCardProps {
   isRetweeted?: boolean;
   isBookmarked?: boolean;
   isPreview?: boolean;
+  onUserClick?: (username: string) => void;
 }
 
 // Fonction pour formater le texte avec les liens, hashtags et mentions
@@ -69,7 +76,8 @@ const formatText = (text: string) => {
 
     // Vérifier si c'est un hashtag
     else if (part.match(hashtagRegex)) {
-      return <a key={index} href={`/hashtag/${part.substring(1)}`} className="text-blue-500 hover:underline">{part}</a>;
+      const tag = part.substring(1);
+      return <a key={index} href={`/feed/search?q=${encodeURIComponent(tag)}&type=tag`} className="text-blue-500 hover:underline">{part}</a>;
     }
 
     // Vérifier si c'est une mention
@@ -85,6 +93,7 @@ const formatText = (text: string) => {
 };
 
 export default function PostCard({
+  id,
   user,
   content,
   image,
@@ -93,77 +102,103 @@ export default function PostCard({
   isLiked = false,
   isRetweeted = false,
   isBookmarked = false,
-  isPreview = false
+  isPreview = false,
+  onUserClick
 }: PostCardProps) {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(isLiked);
   const [likes, setLikes] = useState(stats.likes);
   const [retweeted, setRetweeted] = useState(isRetweeted);
   const [retweets, setRetweets] = useState(stats.retweets);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
 
-  // Utiliser useMemo pour éviter de reformater le contenu à chaque rendu
   const { formattedContent, detectedImageUrls } = useMemo(() => formatText(content), [content]);
-
-  // Combiner l'image explicitement fournie avec celles détectées dans le contenu
   const allImages = useMemo(() => {
     const images = [...detectedImageUrls];
     if (image) images.unshift(image);
     return images;
   }, [image, detectedImageUrls]);
 
-  const handleLike = () => {
-    if (isPreview) return; // Ne rien faire si en mode prévisualisation
-    setLiked(!liked);
-    setLikes(liked ? likes - 1 : likes + 1);
+  const handleLike = async () => {
+    if (isPreview) return;
+    const result = await toggleLike(id);
+    if (result.success) {
+      setLiked(result.isLiked);
+      setLikes(result.isLiked ? likes + 1 : likes - 1);
+    } else {
+      console.error(result.message);
+    }
   };
 
-  const handleRetweet = () => {
-    if (isPreview) return; // Ne rien faire si en mode prévisualisation
-    setRetweeted(!retweeted);
-    setRetweets(retweeted ? retweets - 1 : retweets + 1);
+  const handleRetweet = async () => {
+    if (isPreview) return;
+    const result = await toggleRetweet(id);
+    if (result.success) {
+      setRetweeted(result.isRetweeted);
+      setRetweets(result.isRetweeted ? retweets + 1 : retweets - 1);
+    } else {
+      console.error(result.message);
+    }
   };
 
-  const handleBookmark = () => {
-    if (isPreview) return; // Ne rien faire si en mode prévisualisation
-    setBookmarked(!bookmarked);
+  const handleBookmark = async () => {
+    if (isPreview) return;
+    const result = await toggleSignet(id);
+    if (result.success) {
+      setBookmarked(result.isBookmarked);
+    } else {
+      console.error(result.message);
+    }
   };
 
-  // Classes CSS pour le mode prévisualisation
+  const handleUserClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (isPreview) return;
+    if (onUserClick) {
+      onUserClick(user.username);
+    } else {
+      navigate(`/user/${user.username}`);
+    }
+  };
+
   const previewClass = isPreview ? "pointer-events-none opacity-75" : "";
+  const userClickClass = isPreview ? "" : "cursor-pointer hover:underline";
 
   return (
     <div className={`bg-white border border-gray-200 rounded-xl p-4 mb-4 ${isPreview ? '' : 'hover:bg-gray-50'} transition-colors`}>
+
       {/* En-tête du post */}
       <div className="flex justify-between">
         <div className="flex items-start space-x-3">
-          {/* Avatar */}
           <div className="flex-shrink-0">
             <img
-              src={user.avatar}
+              src={user.avatar || "https://randomuser.me/api/portraits/lego/1.jpg"}
               alt={`${user.name}'s avatar`}
               className="h-10 w-10 rounded-full object-cover border border-gray-200"
             />
           </div>
-
-          {/* Info utilisateur */}
           <div>
             <div className="flex items-center">
-              <h4 className="font-bold text-gray-900">{user.name}</h4>
-              {user.verified && (
-                <span className="ml-1 text-blue-500">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5c-1.51 0-2.816.917-3.437 2.25-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
-                  </svg>
-                </span>
+            <h4 
+                className={`font-bold text-gray-900 mr-1 ${userClickClass}`}
+                onClick={!isPreview ? handleUserClick : undefined}
+              >
+                {user.name}
+              </h4>
+              {user.premium && (
+                <PremiumIcon />
               )}
-              <span className="text-gray-500 ml-2 font-normal">@{user.username}</span>
+              <span 
+                className={`text-gray-500 ml-2 font-normal ${userClickClass}`}
+                onClick={!isPreview ? handleUserClick : undefined}
+              >
+                @{user.username}
+              </span>
               <span className="text-gray-400 mx-1">·</span>
-              <span className="text-gray-500 text-sm">{timestamp}</span>
+              <span className="text-gray-500 text-sm">il y a {timestamp}</span>
             </div>
           </div>
         </div>
-
-        {/* Menu trois points - caché en mode prévisualisation */}
         {!isPreview && (
           <button className="text-gray-400 hover:text-gray-600 rounded-full h-8 w-8 flex items-center justify-center hover:bg-gray-100 transition-colors">
             <FiMoreHorizontal />
@@ -176,14 +211,11 @@ export default function PostCard({
         <p className="text-gray-900 whitespace-pre-wrap">{formattedContent}</p>
       </div>
 
-      {/* Images (du prop ou détectées dans le contenu) */}
+      {/* Gestion des images */}
       {allImages.length > 0 && (
         <div className={`mt-3 grid gap-2 ${allImages.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
           {allImages.map((img, index) => (
-            <div
-              key={index}
-              className={`rounded-xl overflow-hidden ${allImages.length > 2 && index >= 2 ? 'lg:col-span-1' : ''}`}
-            >
+            <div key={index} className={`rounded-xl overflow-hidden ${allImages.length > 2 && index >= 2 ? 'lg:col-span-1' : ''}`}>
               <img
                 src={img}
                 alt={`Image ${index + 1}`}
@@ -195,9 +227,8 @@ export default function PostCard({
         </div>
       )}
 
-      {/* Actions - avec une classe pour désactiver les interactions en mode prévisualisation */}
+      {/* Actions */}
       <div className={`mt-3 flex justify-between items-center ${previewClass}`}>
-        {/* Commentaires */}
         <ActionButton
           icon={<FiMessageCircle />}
           count={stats.comments}
@@ -206,8 +237,6 @@ export default function PostCard({
           ariaLabel="Commenter"
           disable={isPreview}
         />
-
-        {/* Retweets */}
         <ActionButton
           icon={<FiRepeat />}
           count={retweets}
@@ -220,8 +249,6 @@ export default function PostCard({
           ariaLabel="Retweeter"
           disable={isPreview}
         />
-
-        {/* Likes */}
         <ActionButton
           icon={<FiHeart />}
           count={likes}
@@ -235,8 +262,6 @@ export default function PostCard({
           ariaLabel="J'aime"
           disable={isPreview}
         />
-
-        {/* Bookmark */}
         <ActionButton
           icon={<FiBookmark />}
           onClick={isPreview ? undefined : handleBookmark}
@@ -249,8 +274,6 @@ export default function PostCard({
           ariaLabel="Sauvegarder"
           disable={isPreview}
         />
-
-        {/* Partager */}
         <ActionButton
           icon={<FiShare />}
           hoverColor={isPreview ? "" : "hover:text-blue-500"}
@@ -259,6 +282,7 @@ export default function PostCard({
           disable={isPreview}
         />
       </div>
+
     </div>
   );
 }

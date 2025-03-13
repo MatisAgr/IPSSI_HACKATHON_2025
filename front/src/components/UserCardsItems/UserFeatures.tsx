@@ -1,58 +1,116 @@
-import React from 'react';
-import { FaCalendarAlt, FaUserFriends, FaUsers, FaCheck } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaCalendarAlt, FaUserFriends, FaUsers } from 'react-icons/fa';
+import FollowListModal from '../Modals/FollowListModal';
+import PremiumIcon from '../../constants/PremiumIcon';
 
-// Fichier UserFeatures.tsx
-//composant pour le nom, l'alias, la bio, la date d'inscription à la plateforme, le décompte d'abonnements, le décompte d'abonnés de la sectuon utilisateur
-
-
-
+interface User {
+  id: string;
+  username: string;
+  hashtag: string;
+  profileImage: string;
+  isFollowing?: boolean;
+  premium?: boolean;
+}
 
 interface UserFeaturesProps {
   user: {
-    name: string;
     username: string;
+    name: string;
     bio: string;
     followers: string;
     following: string;
     joinDate: string;
   };
   isPremium: boolean;
+  followersData?: User[];
+  followingData?: User[];
+  followsLoading?: boolean;
+  onFollowToggle?: (userId: string) => void;
+  onUserClick?: (userId: string, hashtag: string) => void;
 }
 
-const UserFeatures: React.FC<UserFeaturesProps> = ({ user, isPremium }) => {
+const UserFeatures: React.FC<UserFeaturesProps> = ({ 
+  user, 
+  isPremium, 
+  followersData = [],
+  followingData = [],
+  followsLoading = false,
+  onFollowToggle,
+  onUserClick
+}) => {
+  // gérer l'ouverture/fermeture des modales
+  const [followersModalOpen, setFollowersModalOpen] = useState(false);
+  const [followingModalOpen, setFollowingModalOpen] = useState(false);
+
   return (
-    <div className="flex flex-col flex-grow">
-      <div className="flex items-center space-x-2">
-        <h1 className="text-xl font-bold text-gray-800">{user.name}</h1>
-        {isPremium && (
-          <div className="text-blue-500 bg-blue-100 p-1 rounded-full">
-            <FaCheck className="h-3 w-3" />
+    <>
+      <div className="flex flex-col flex-grow">
+        <div className="flex items-center space-x-2">
+          <h1 className="text-xl font-bold text-gray-800">{user.name}</h1>
+          {isPremium && (
+            <PremiumIcon />
+          )}
+        </div>
+        <div className="flex items-center text-sm space-x-1">
+          <span className="text-gray-600">{user.username}</span>
+        </div>
+        
+        <p className="mt-2 text-gray-700">{user.bio}</p>
+        
+        <div className="flex items-center mt-2 text-sm text-gray-600">
+          <FaCalendarAlt className="h-4 w-4 mr-1 text-blue-500" />
+          <span>A rejoint en {user.joinDate}</span>
+        </div>
+        
+        <div className="flex mt-3 space-x-4">
+          {/* Section abonnements - rendue cliquable */}
+          <div 
+            className="flex items-center cursor-pointer hover:text-blue-500 transition-colors group" 
+            onClick={() => setFollowingModalOpen(true)}
+          >
+            <FaUserFriends className="h-4 w-4 mr-1 text-blue-500" />
+            <span>
+              <strong>{user.following}</strong>{" "}
+              <span className="text-gray-600 group-hover:text-blue-400 transition-colors">abonnements</span>
+            </span>
           </div>
-        )}
-      </div>
-      <span className="text-gray-600">{user.username}</span>
-      <p className="mt-2 text-gray-700">{user.bio}</p>
-      <div className="flex items-center mt-2 text-sm text-gray-600">
-        <FaCalendarAlt className="h-4 w-4 mr-1 text-blue-500" />
-        <span>A rejoint en {user.joinDate}</span>
-      </div>
-      <div className="flex mt-3 space-x-4">
-        <div className="flex items-center">
-          <FaUserFriends className="h-4 w-4 mr-1 text-blue-500" />
-          <span>
-            <strong>{user.following}</strong>{" "}
-            <span className="text-gray-600">abonnements</span>
-          </span>
-        </div>
-        <div className="flex items-center">
-          <FaUsers className="h-4 w-4 mr-1 text-blue-500" />
-          <span>
-            <strong>{user.followers}</strong>{" "}
-            <span className="text-gray-600">abonnés</span>
-          </span>
+          
+          {/* Section abonnés - rendue cliquable */}
+          <div 
+            className="flex items-center cursor-pointer hover:text-blue-500 transition-colors group" 
+            onClick={() => setFollowersModalOpen(true)}
+          >
+            <FaUsers className="h-4 w-4 mr-1 text-blue-500" />
+            <span>
+              <strong>{user.followers}</strong>{" "}
+              <span className="text-gray-600 group-hover:text-blue-400 transition-colors">abonnés</span>
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Modale pour les abonnés */}
+      <FollowListModal
+        isOpen={followersModalOpen}
+        onClose={() => setFollowersModalOpen(false)}
+        title="Abonnés"
+        users={followersData}
+        onFollowToggle={onFollowToggle}
+        onUserClick={onUserClick}
+        isLoading={followsLoading}
+      />
+
+      {/* Modale pour les abonnements */}
+      <FollowListModal
+        isOpen={followingModalOpen}
+        onClose={() => setFollowingModalOpen(false)}
+        title="Abonnements"
+        users={followingData}
+        onFollowToggle={onFollowToggle}
+        onUserClick={onUserClick}
+        isLoading={followsLoading}
+      />
+    </>
   );
 };
 
